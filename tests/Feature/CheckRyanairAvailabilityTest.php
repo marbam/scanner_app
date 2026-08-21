@@ -9,16 +9,16 @@ use Illuminate\Support\Facades\Notification;
 beforeEach(function () {
     $this->interest = Interest::factory()->create([
         'provider' => 'ryanair',
-        'provider_params' => ['origin' => 'BRS', 'destination' => 'VLC', 'month' => '2027-03-01'],
+        'provider_params' => ['origin' => 'BRS', 'destination' => 'VLC', 'month' => '2027-03-01', 'day' => 20],
         'status' => 'watching',
         'last_response_hash' => null,
     ]);
 });
 
-it('marks interest as released, records an alert, and notifies when fares appear', function () {
+it('marks interest as released, records an alert, and notifies when the watched day has a fare', function () {
     Http::fake([
         'services-api.ryanair.com/*' => Http::response([
-            'outbound' => ['fares' => [['day' => 28, 'price' => ['value' => 45.99]]]],
+            'outbound' => ['fares' => [['day' => 20, 'price' => ['value' => 45.99]]]],
         ], 200),
     ]);
     Notification::fake();
@@ -37,6 +37,30 @@ it('marks interest as released, records an alert, and notifies when fares appear
     $this->assertDatabaseHas('alerts', [
         'interest_id' => $this->interest->id,
     ]);
+});
+
+it('does not notify when other days in the month have fares but the watched day does not', function () {
+    Http::fake([
+        'services-api.ryanair.com/*' => Http::response([
+            'outbound' => ['fares' => [
+                ['day' => 5, 'price' => ['value' => 39.99]],
+                ['day' => 28, 'price' => ['value' => 45.99]],
+            ]],
+        ], 200),
+    ]);
+    Notification::fake();
+
+    (new CheckRyanairAvailability($this->interest))->handle();
+
+    expect($this->interest->fresh())->status->toBe('watching');
+    Notification::assertNothingSent();
+
+    $this->assertDatabaseHas('interest_checks', [
+        'interest_id' => $this->interest->id,
+        'outcome' => 'checked_no_release',
+    ]);
+
+    $this->assertDatabaseCount('alerts', 0);
 });
 
 it('does not notify when fares array is empty', function () {

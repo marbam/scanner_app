@@ -22,7 +22,7 @@ class CheckRyanairAvailability implements ShouldQueue
 
     public function handle(): void
     {
-        /** @var array{origin: string, destination: string, month: string} $params */
+        /** @var array{origin: string, destination: string, month: string, day: int} $params */
         $params = $this->interest->provider_params;
 
         try {
@@ -47,7 +47,12 @@ class CheckRyanairAvailability implements ShouldQueue
                 return;
             }
 
-            $released = ! empty($response->json('outbound.fares'));
+            // The month can have fares on other days before our specific day
+            // is released, so we match on 'day' rather than the whole array.
+            /** @var array<int, array{day?: int, price?: mixed}> $fares */
+            $fares = $response->json('outbound.fares', []);
+            $fareForDay = collect($fares)->first(fn (array $fare): bool => ($fare['day'] ?? null) === $params['day']);
+            $released = $fareForDay !== null && ! empty($fareForDay['price']);
 
             $this->interest->update([
                 'last_response_hash' => $hash,

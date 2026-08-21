@@ -21,6 +21,7 @@ class InterestFactory extends Factory
                 'origin' => 'BRS',
                 'destination' => 'VLC',
                 'month' => '2027-03-01',
+                'day' => 20,
             ],
             'status' => 'watching',
             'enabled' => true,
