@@ -14,6 +14,10 @@ it('redirects guests to login', function () {
 });
 
 it('sends a pushover test notification to an authenticated, verified user', function () {
+    config([
+        'services.pushover.user_key' => str_repeat('u', 30),
+        'services.pushover.token' => 'fake-app-token',
+    ]);
     Notification::fake();
 
     $user = User::factory()->create();

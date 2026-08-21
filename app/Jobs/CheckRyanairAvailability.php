@@ -13,6 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use NotificationChannels\Pushover\PushoverReceiver;
 
 class CheckRyanairAvailability implements ShouldQueue
 {
@@ -80,10 +81,9 @@ class CheckRyanairAvailability implements ShouldQueue
             'notified_at' => now(),
         ]);
 
-        Notification::route('pushover', [
-            'user_key' => config('services.pushover.user_key'),
-            'token' => config('services.pushover.token'),
-        ])->notify(new InterestReleased($this->interest));
+        Notification::route('pushover', PushoverReceiver::withUserKey(config('services.pushover.user_key'))
+            ->withApplicationToken(config('services.pushover.token')))
+            ->notify(new InterestReleased($this->interest));
     }
 
     protected function logCheck(?Response $response, string $outcome, ?string $error = null): void

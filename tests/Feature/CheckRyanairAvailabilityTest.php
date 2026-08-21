@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
+    config([
+        'services.pushover.user_key' => str_repeat('u', 30),
+        'services.pushover.token' => 'fake-app-token',
+    ]);
+
     $this->interest = Interest::factory()->create([
         'provider' => 'ryanair',
         'provider_params' => ['origin' => 'BRS', 'destination' => 'VLC', 'month' => '2027-03-01', 'day' => 20],
