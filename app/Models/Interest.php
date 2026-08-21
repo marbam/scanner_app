@@ -31,11 +31,17 @@ class Interest extends Model
         ];
     }
 
+    /**
+     * @return HasMany<InterestCheck, $this>
+     */
     public function checks(): HasMany
     {
         return $this->hasMany(InterestCheck::class);
     }
 
+    /**
+     * @return HasMany<Alert, $this>
+     */
     public function alerts(): HasMany
     {
         return $this->hasMany(Alert::class);

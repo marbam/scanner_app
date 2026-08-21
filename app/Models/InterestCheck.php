@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\InterestCheckFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InterestCheck extends Model
 {
+    /** @use HasFactory<InterestCheckFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -25,6 +27,9 @@ class InterestCheck extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Interest, $this>
+     */
     public function interest(): BelongsTo
     {
         return $this->belongsTo(Interest::class);

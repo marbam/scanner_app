@@ -9,8 +9,8 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
-        "laravel-notification-channels/pushover": "*",
+        "php": "^8.4",
+        "laravel-notification-channels/pushover": "^5.0",
         "laravel/chisel": "^0.1.0",
         "laravel/fortify": "^1.37.2",
         "laravel/framework": "^13.17",

@@ -22,6 +22,7 @@ class CheckRyanairAvailability implements ShouldQueue
 
     public function handle(): void
     {
+        /** @var array{origin: string, destination: string, month: string} $params */
         $params = $this->interest->provider_params;
 
         try {

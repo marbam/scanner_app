@@ -11,12 +11,15 @@ class InterestReleased extends Notification
 {
     public function __construct(protected Interest $interest) {}
 
-    public function via($notifiable): array
+    /**
+     * @return array<int, class-string>
+     */
+    public function via(mixed $notifiable): array
     {
         return [PushoverChannel::class];
     }
 
-    public function toPushover($notifiable): PushoverMessage
+    public function toPushover(mixed $notifiable): PushoverMessage
     {
         return PushoverMessage::create("It's live: {$this->interest->name}")
             ->title('Interest tracker')
