@@ -1,0 +1,44 @@
+name: odeon-check
+
+on:
+  schedule:
+    # GitHub Actions cron is UTC-only; this drifts an hour against UK
+    # local time during BST, which is fine since these are rough checks.
+    - cron: '0 9,13,17 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: .github/scripts/odeon-check
+        run: npm install
+
+      - name: Install Playwright Chromium
+        working-directory: .github/scripts/odeon-check
+        run: npx playwright install --with-deps chromium
+
+      - name: Check Odeon Cabot Circus for Avengers Doomsday
+        working-directory: .github/scripts/odeon-check
+        env:
+          ODEON_CINEMA_URL: https://www.odeon.co.uk/cinemas/bristol/
+          ODEON_FILM_TITLE: 'Avengers: Doomsday'
+          INTEREST_ID: ${{ vars.ODEON_AVENGERS_DOOMSDAY_INTEREST_ID }}
+          WEBHOOK_URL: https://scanner.marbam.uk/api/cinema-checks
+          WEBHOOK_TOKEN: ${{ secrets.CINEMA_WEBHOOK_TOKEN }}
+        run: node check.mjs

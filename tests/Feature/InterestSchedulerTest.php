@@ -2,6 +2,7 @@
 
 use App\Jobs\CheckComedyFestivalOnSale;
 use App\Jobs\CheckRyanairAvailability;
+use App\Jobs\CheckShowcaseCinemaOnSale;
 use App\Models\Interest;
 use Illuminate\Support\Facades\Queue;
 
@@ -33,4 +34,19 @@ it('dispatches a check job for each enabled, watching wells_comedy_festival inte
         ->each(fn (Interest $interest) => CheckComedyFestivalOnSale::dispatch($interest));
 
     Queue::assertPushed(CheckComedyFestivalOnSale::class, 1);
+});
+
+it('dispatches a check job for each enabled, watching showcase_cinemas interest', function () {
+    Queue::fake();
+
+    Interest::factory()->create(['provider' => 'showcase_cinemas', 'status' => 'watching', 'enabled' => true]);
+    Interest::factory()->create(['provider' => 'showcase_cinemas', 'status' => 'released', 'enabled' => true]);
+    Interest::factory()->create(['provider' => 'showcase_cinemas', 'status' => 'watching', 'enabled' => false]);
+
+    Interest::where('provider', 'showcase_cinemas')
+        ->where('enabled', true)
+        ->where('status', '!=', 'released')
+        ->each(fn (Interest $interest) => CheckShowcaseCinemaOnSale::dispatch($interest));
+
+    Queue::assertPushed(CheckShowcaseCinemaOnSale::class, 1);
 });

@@ -40,4 +40,8 @@ return [
         'user_key' => env('PUSHOVER_USER_KEY'),
     ],
 
+    'cinema_webhook' => [
+        'token' => env('CINEMA_WEBHOOK_TOKEN'),
+    ],
+
 ];
