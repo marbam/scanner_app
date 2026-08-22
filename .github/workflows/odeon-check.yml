@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  check-avengers-doomsday:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,6 +39,43 @@ jobs:
           ODEON_CINEMA_URL: https://www.odeon.co.uk/cinemas/bristol/
           ODEON_FILM_TITLE: 'Avengers: Doomsday'
           INTEREST_ID: ${{ vars.ODEON_AVENGERS_DOOMSDAY_INTEREST_ID }}
+          WEBHOOK_URL: https://scanner.marbam.uk/api/cinema-checks
+          WEBHOOK_TOKEN: ${{ secrets.CINEMA_WEBHOOK_TOKEN }}
+        run: node check.mjs
+
+  check-avengers-endgame-re-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: .github/scripts/odeon-check
+        run: npm install
+
+      - name: Install Playwright Chromium
+        working-directory: .github/scripts/odeon-check
+        run: npx playwright install --with-deps chromium
+
+      - name: Check Odeon Cabot Circus for Avengers Endgame re-release
+        working-directory: .github/scripts/odeon-check
+        env:
+          ODEON_CINEMA_URL: https://www.odeon.co.uk/cinemas/bristol/
+          # Matches on the title without the "(Re-release)"/"Re-release"
+          # suffix since the UK site's exact punctuation for it isn't
+          # confirmed yet (the film isn't listed there until it goes on
+          # sale) — "Avengers: Endgame" alone is specific enough on this
+          # one cinema's current listings page.
+          ODEON_FILM_TITLE: 'Avengers: Endgame'
+          INTEREST_ID: ${{ vars.ODEON_AVENGERS_ENDGAME_INTEREST_ID }}
           WEBHOOK_URL: https://scanner.marbam.uk/api/cinema-checks
           WEBHOOK_TOKEN: ${{ secrets.CINEMA_WEBHOOK_TOKEN }}
         run: node check.mjs
