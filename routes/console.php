@@ -16,11 +16,11 @@ Schedule::call(function () {
         ->where('enabled', true)
         ->where('status', '!=', 'released')
         ->each(fn (Interest $interest) => CheckRyanairAvailability::dispatch($interest));
-})->twiceDaily(8, 18);
+})->dailyAt('09:00')->timezone('Europe/London');
 
 Schedule::call(function () {
     Interest::where('provider', 'wells_comedy_festival')
         ->where('enabled', true)
         ->where('status', '!=', 'released')
         ->each(fn (Interest $interest) => CheckComedyFestivalOnSale::dispatch($interest));
-})->twiceDaily(8, 18);
+})->dailyAt('09:00')->timezone('Europe/London');
