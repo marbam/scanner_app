@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\CheckComedyFestivalOnSale;
 use App\Jobs\CheckRyanairAvailability;
 use App\Models\Interest;
 use Illuminate\Foundation\Inspiring;
@@ -15,4 +16,11 @@ Schedule::call(function () {
         ->where('enabled', true)
         ->where('status', '!=', 'released')
         ->each(fn (Interest $interest) => CheckRyanairAvailability::dispatch($interest));
+})->twiceDaily(8, 18);
+
+Schedule::call(function () {
+    Interest::where('provider', 'wells_comedy_festival')
+        ->where('enabled', true)
+        ->where('status', '!=', 'released')
+        ->each(fn (Interest $interest) => CheckComedyFestivalOnSale::dispatch($interest));
 })->twiceDaily(8, 18);

@@ -48,9 +48,11 @@ PHPStan needs more than the default 128M memory limit locally on Windows/Herd �
 
 ### Provider/checker pattern
 
-Each `provider` value corresponds to one Job class that knows how to check that source. Currently only `ryanair` exists (`app/Jobs/CheckRyanairAvailability.php`). The scheduler in `routes/console.php` queries `Interest::where('provider', 'ryanair')->where('enabled', true)->where('status', '!=', 'released')` and dispatches the job per matching interest, twice daily. Adding a new checker type (per the original brief: UK artist ticket on-sales, Wells Comedy Festival) means: a new Job class following this same log-every-attempt/hash-diff/notify-on-release shape, a new `provider` value, and a new scheduler entry.
+Each `provider` value corresponds to one Job class that knows how to check that source. Two exist: `ryanair` (`app/Jobs/CheckRyanairAvailability.php`) and `wells_comedy_festival` (`app/Jobs/CheckComedyFestivalOnSale.php`). The scheduler in `routes/console.php` has one `Schedule::call` block per provider, each querying `Interest::where('provider', <key>)->where('enabled', true)->where('status', '!=', 'released')` and dispatching the matching job, twice daily. Adding a new checker type (per the original brief: UK artist ticket on-sales) means: a new Job class following this same log-every-attempt/hash-diff/notify-on-release shape, a new `provider` value, and a new scheduler entry.
 
 `CheckRyanairAvailability` matches fares by the specific `day` in `provider_params`, not just "does the month have any fares at all" — Ryanair's FareFinder endpoint returns per-day fare data for the whole queried month, and the route doesn't fly every day, so month-level matching produces false positives. Always match on the specific day being watched.
+
+`CheckComedyFestivalOnSale` is a plain HTML scraper, not a JSON API call — Wells Comedy Festival (`wellscomfest.com`, Squarespace) server-renders its `/whats-on-by-day` page, so a plain `Http::get` (no JS execution needed) sees the real content. `provider_params` is `{url, not_on_sale_text}`: between festivals the page shows a fixed message (e.g. "The 2026 festival is now over"); release is detected as that `not_on_sale_text` string disappearing from the response body once the next festival's line-up/booking goes live. Because the response isn't JSON, `response_body` is stored as `['html' => $response->body()]` to fit the `interest_checks.response_body` JSON column and the model's array cast.
 
 ### Notifications: Pushover on-demand routing gotcha
 
