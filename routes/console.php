@@ -39,4 +39,4 @@ Schedule::call(function () {
         ->where('enabled', true)
         ->where('status', '!=', 'released')
         ->each(fn (Interest $interest) => CheckTicketmasterEventOnSale::dispatch($interest));
-})->dailyAt('09:00')->timezone('Europe/London');
+})->cron('0 10,11 * * *')->timezone('Europe/London');
