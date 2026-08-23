@@ -44,4 +44,8 @@ return [
         'token' => env('CINEMA_WEBHOOK_TOKEN'),
     ],
 
+    'ticketmaster' => [
+        'key' => env('TICKETMASTER_API_KEY'),
+    ],
+
 ];

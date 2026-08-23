@@ -3,6 +3,7 @@
 use App\Jobs\CheckComedyFestivalOnSale;
 use App\Jobs\CheckRyanairAvailability;
 use App\Jobs\CheckShowcaseCinemaOnSale;
+use App\Jobs\CheckTicketmasterEventOnSale;
 use App\Models\Interest;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -32,3 +33,10 @@ Schedule::call(function () {
         ->where('status', '!=', 'released')
         ->each(fn (Interest $interest) => CheckShowcaseCinemaOnSale::dispatch($interest));
 })->cron('0 9,13,17 * * *')->timezone('Europe/London');
+
+Schedule::call(function () {
+    Interest::where('provider', 'ticketmaster')
+        ->where('enabled', true)
+        ->where('status', '!=', 'released')
+        ->each(fn (Interest $interest) => CheckTicketmasterEventOnSale::dispatch($interest));
+})->dailyAt('09:00')->timezone('Europe/London');
