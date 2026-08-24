@@ -19,6 +19,10 @@
                     <flux:sidebar.item icon="document-magnifying-glass" :href="route('scans.index')" :current="request()->routeIs('scans.index')" wire:navigate>
                         {{ __('Scans') }}
                     </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="megaphone" :href="route('planning-applications.index')" :current="request()->routeIs('planning-applications.index')" wire:navigate>
+                        {{ __('Bristol adverts') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

@@ -4,6 +4,7 @@ use App\Jobs\CheckComedyFestivalOnSale;
 use App\Jobs\CheckRyanairAvailability;
 use App\Jobs\CheckShowcaseCinemaOnSale;
 use App\Jobs\CheckTicketmasterEventOnSale;
+use App\Jobs\ScanBristolAdvertPlanningApplications;
 use App\Models\Interest;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -40,3 +41,5 @@ Schedule::call(function () {
         ->where('status', '!=', 'released')
         ->each(fn (Interest $interest) => CheckTicketmasterEventOnSale::dispatch($interest));
 })->cron('0 10,11 * * *')->timezone('Europe/London');
+
+Schedule::job(ScanBristolAdvertPlanningApplications::class)->dailyAt('08:00')->timezone('Europe/London');
