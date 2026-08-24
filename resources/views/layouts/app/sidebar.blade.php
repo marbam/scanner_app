@@ -24,6 +24,16 @@
                         {{ __('Bristol adverts') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Facebook')" class="grid">
+                    <flux:sidebar.item icon="document-text" :href="route('facebook.posts.index')" :current="request()->routeIs('facebook.posts.index')" wire:navigate>
+                        {{ __('All posts') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="clock" :href="route('facebook.memories.index')" :current="request()->routeIs('facebook.memories.index')" wire:navigate>
+                        {{ __('Memories') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
             </flux:sidebar.nav>
 
             <flux:spacer />

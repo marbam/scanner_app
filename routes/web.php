@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\PushoverTestController;
+use App\Livewire\Facebook\Memories\Index as FacebookMemoriesIndex;
+use App\Livewire\Facebook\Posts\Index as FacebookPostsIndex;
 use App\Livewire\Interests\Index as InterestsIndex;
 use App\Livewire\PlanningApplications\Index as PlanningApplicationsIndex;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('scans', InterestsIndex::class)->name('scans.index');
 
     Route::livewire('bristol-adverts', PlanningApplicationsIndex::class)->name('planning-applications.index');
+
+    Route::livewire('facebook/posts', FacebookPostsIndex::class)->name('facebook.posts.index');
+
+    Route::livewire('facebook/memories', FacebookMemoriesIndex::class)->name('facebook.memories.index');
 
     Route::get('pushover-test', PushoverTestController::class)
         ->middleware('throttle:6,1')
