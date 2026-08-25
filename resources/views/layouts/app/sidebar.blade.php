@@ -34,6 +34,12 @@
                         {{ __('Memories') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Twitter')" class="grid">
+                    <flux:sidebar.item icon="clock" :href="route('twitter.memories.index')" :current="request()->routeIs('twitter.memories.index')" wire:navigate>
+                        {{ __('Memories') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
             </flux:sidebar.nav>
 
             <flux:spacer />
