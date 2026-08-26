@@ -19,20 +19,20 @@
     <div class="flex flex-col gap-4">
         <flux:table>
             <flux:table.columns>
-                <flux:table.column>{{ __('Reference') }}</flux:table.column>
-                <flux:table.column>{{ __('Address') }}</flux:table.column>
+                <flux:table.column class="w-28">{{ __('Reference') }}</flux:table.column>
+                <flux:table.column class="w-56">{{ __('Address') }}</flux:table.column>
                 <flux:table.column>{{ __('Proposal') }}</flux:table.column>
-                <flux:table.column>{{ __('Status') }}</flux:table.column>
-                <flux:table.column>{{ __('Search') }}</flux:table.column>
-                <flux:table.column>{{ __('Viewed') }}</flux:table.column>
+                <flux:table.column class="w-28">{{ __('Status') }}</flux:table.column>
+                <flux:table.column class="w-20">{{ __('Search') }}</flux:table.column>
+                <flux:table.column class="w-20">{{ __('Viewed') }}</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->applications as $application)
                     <flux:table.row wire:key="application-{{ $application->id }}">
                         <flux:table.cell class="font-medium whitespace-nowrap">{{ $application->reference }}</flux:table.cell>
-                        <flux:table.cell>{{ $application->address }}</flux:table.cell>
-                        <flux:table.cell class="max-w-md">{{ $application->proposal }}</flux:table.cell>
+                        <flux:table.cell class="whitespace-normal break-words">{{ $application->address }}</flux:table.cell>
+                        <flux:table.cell class="whitespace-normal break-words">{{ $application->proposal }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc">{{ $application->status }}</flux:badge>
                         </flux:table.cell>

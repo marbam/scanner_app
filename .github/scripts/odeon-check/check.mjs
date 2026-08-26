@@ -18,10 +18,13 @@ const browser = await chromium.launch();
 let snapshot;
 
 try {
-  const page = await browser.newPage({
-    userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  });
+  // No custom userAgent override here on purpose: a hardcoded UA string
+  // drifts out of sync with the real Chromium version's own Sec-CH-UA
+  // client-hint headers as the `playwright` dependency gets bumped, and
+  // that UA/client-hints mismatch is exactly what got every check silently
+  // Cloudflare-blocked (see the `blocked` check below, which is what
+  // caught it).
+  const page = await browser.newPage();
 
   await page.goto(cinemaUrl, { waitUntil: 'networkidle' });
 
@@ -35,6 +38,15 @@ try {
   snapshot = (await page.locator('body').innerText()).trim();
 } finally {
   await browser.close();
+}
+
+// A Cloudflare block page reads as "the film isn't listed" to a plain
+// title-presence check, which would otherwise fail the run's *purpose*
+// (detecting a release) without failing the *run* — so it never surfaces
+// anywhere. Detect it explicitly and blow up instead of silently reporting
+// on_sale=false.
+if (snapshot.includes('Cloudflare Ray ID') || snapshot.includes('has been blocked')) {
+  throw new Error(`Blocked by Cloudflare while loading ${cinemaUrl} — snapshot: ${snapshot.slice(0, 500)}`);
 }
 
 const onSale = snapshot.includes(filmTitle);
