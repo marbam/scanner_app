@@ -18,7 +18,7 @@ class Index extends Component
     public function applications(): Collection
     {
         return PlanningApplication::query()
-            ->orderByDesc('reference')
+            ->orderByDesc('created_at')
             ->get();
     }
 

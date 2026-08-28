@@ -20,9 +20,10 @@
         <flux:table>
             <flux:table.columns>
                 <flux:table.column class="w-28">{{ __('Reference') }}</flux:table.column>
-                <flux:table.column class="w-56">{{ __('Address') }}</flux:table.column>
-                <flux:table.column>{{ __('Proposal') }}</flux:table.column>
+                <flux:table.column class="w-40">{{ __('Address') }}</flux:table.column>
+                <flux:table.column class="w-96">{{ __('Proposal') }}</flux:table.column>
                 <flux:table.column class="w-28">{{ __('Status') }}</flux:table.column>
+                <flux:table.column class="w-28 whitespace-nowrap">{{ __('Date added') }}</flux:table.column>
                 <flux:table.column class="w-20">{{ __('Search') }}</flux:table.column>
                 <flux:table.column class="w-20">{{ __('Viewed') }}</flux:table.column>
             </flux:table.columns>
@@ -31,11 +32,12 @@
                 @forelse ($this->applications as $application)
                     <flux:table.row wire:key="application-{{ $application->id }}">
                         <flux:table.cell class="font-medium whitespace-nowrap">{{ $application->reference }}</flux:table.cell>
-                        <flux:table.cell class="whitespace-normal break-words">{{ $application->address }}</flux:table.cell>
-                        <flux:table.cell class="whitespace-normal break-words">{{ $application->proposal }}</flux:table.cell>
+                        <flux:table.cell class="max-w-40 whitespace-normal break-words">{{ $application->address }}</flux:table.cell>
+                        <flux:table.cell class="max-w-96 whitespace-normal break-words">{{ $application->proposal }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc">{{ $application->status }}</flux:badge>
                         </flux:table.cell>
+                        <flux:table.cell class="whitespace-nowrap text-zinc-500">{{ $application->created_at?->format('d M Y') }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:button
                                 href="https://pa.bristol.gov.uk/online-applications/search.do?action=simple"
@@ -56,7 +58,7 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="6" class="text-center text-zinc-500">
+                        <flux:table.cell colspan="7" class="text-center text-zinc-500">
                             {{ __('No advertisement applications found yet.') }}
                         </flux:table.cell>
                     </flux:table.row>
