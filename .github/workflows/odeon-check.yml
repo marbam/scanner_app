@@ -1,10 +1,10 @@
 name: odeon-check
 
 on:
-  schedule:
-    # GitHub Actions cron is UTC-only; this drifts an hour against UK
-    # local time during BST, which is fine since these are rough checks.
-    - cron: '0 9,13,17 * * *'
+  # Schedule paused as of 2026-08-28: Cloudflare blocks the Playwright
+  # browser outright (see CLAUDE.md's Odeon section), so every scheduled
+  # run just fails and spams GitHub's failure-notification emails.
+  # Re-add a `schedule:` cron trigger here if that gets fixed.
   workflow_dispatch:
 
 permissions:
