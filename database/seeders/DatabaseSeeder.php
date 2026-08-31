@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(InterestSeeder::class);
+        $this->call(HabitActivitySeeder::class);
     }
 }

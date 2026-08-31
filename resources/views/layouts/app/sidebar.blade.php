@@ -40,6 +40,24 @@
                         {{ __('Memories') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Habit Tracker')" class="grid">
+                    <flux:sidebar.item icon="calendar-days" :href="route('habits.log')" :current="request()->routeIs('habits.log')" wire:navigate>
+                        {{ __('Log') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="squares-2x2" :href="route('habits.tracker')" :current="request()->routeIs('habits.tracker')" wire:navigate>
+                        {{ __('Tracker') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="arrow-trending-up" :href="route('habits.summary')" :current="request()->routeIs('habits.summary')" wire:navigate>
+                        {{ __('Summary') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="adjustments-horizontal" :href="route('habits.activities')" :current="request()->routeIs('habits.activities')" wire:navigate>
+                        {{ __('Activities') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
             </flux:sidebar.nav>
 
             <flux:spacer />
