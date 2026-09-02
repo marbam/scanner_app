@@ -18,6 +18,8 @@ class Board extends Component
 
     public bool $finished = false;
 
+    public ?int $selectedIndex = null;
+
     public function mount(): void
     {
         $this->newBoard();
@@ -30,13 +32,15 @@ class Board extends Component
             ->all();
 
         $this->finished = false;
+        $this->selectedIndex = null;
     }
 
     /**
-     * Pick an actionable square (one with a differently-coloured neighbour),
-     * weighted so colours with fewer squares on the board are more likely to
-     * be chosen, then spread its colour into one random differently-coloured
-     * neighbour.
+     * Runs on every poll tick, alternating between two phases so the square
+     * about to act is highlighted for one tick before it actually moves:
+     * with nothing selected, pick (and highlight) an actionable square;
+     * with one already selected, spread its colour into a random
+     * differently-coloured neighbour and clear the highlight.
      */
     public function step(): void
     {
@@ -44,6 +48,22 @@ class Board extends Component
             return;
         }
 
+        if ($this->selectedIndex === null) {
+            $this->selectSquare();
+
+            return;
+        }
+
+        $this->commitMove();
+    }
+
+    /**
+     * Pick an actionable square (one with a differently-coloured neighbour),
+     * weighted so colours with fewer squares on the board are more likely to
+     * be chosen.
+     */
+    private function selectSquare(): void
+    {
         $actionable = $this->actionableSquares();
 
         if ($actionable->isEmpty()) {
@@ -56,7 +76,18 @@ class Board extends Component
 
         $chosenColor = $this->weightedColor($byColor->keys(), $this->colorCounts());
 
-        $selected = $byColor[$chosenColor]->random();
+        $this->selectedIndex = $byColor[$chosenColor]->random();
+    }
+
+    private function commitMove(): void
+    {
+        $selected = $this->selectedIndex;
+
+        $this->selectedIndex = null;
+
+        if ($selected === null) {
+            return;
+        }
 
         $target = $this->differentNeighbors($selected)->random();
 
