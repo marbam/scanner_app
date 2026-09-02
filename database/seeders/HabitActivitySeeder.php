@@ -19,6 +19,7 @@ class HabitActivitySeeder extends Seeder
             ['name' => 'Reading', 'color' => '#22c55e', 'weight' => 1, 'sort_order' => 1],
             ['name' => 'Running', 'color' => '#3b82f6', 'weight' => 2, 'sort_order' => 2],
             ['name' => 'Drank Enough Water', 'color' => '#06b6d4', 'weight' => 1, 'sort_order' => 3],
+            ['name' => 'Did Daily Steps', 'color' => '#f97316', 'weight' => 1, 'sort_order' => 4],
         ];
 
         foreach ($activities as $activity) {
