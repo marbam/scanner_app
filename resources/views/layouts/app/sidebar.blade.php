@@ -16,7 +16,7 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
 
-                    <flux:sidebar.item icon="chart-bar" :href="route('pulse')" :current="request()->routeIs('pulse')">
+                    <flux:sidebar.item icon="chart-bar" :href="route('pulse')" :current="request()->routeIs('pulse')" target="_blank">
                         {{ __('Pulse') }}
                     </flux:sidebar.item>
 
