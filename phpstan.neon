@@ -10,4 +10,8 @@ parameters:
         - database/
         - routes/
 
+    excludePaths:
+        - config/pulse.php
+        - database/migrations/*_create_pulse_tables.php
+
     level: 7
