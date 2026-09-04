@@ -5,13 +5,11 @@ use App\Jobs\CheckRyanairAvailability;
 use App\Jobs\CheckShowcaseCinemaOnSale;
 use App\Jobs\CheckTicketmasterEventOnSale;
 use App\Jobs\ScanBristolAdvertPlanningApplications;
+use App\Jobs\SendHabitLogReminder;
 use App\Models\Interest;
-use App\Notifications\HabitLogReminder;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schedule;
-use NotificationChannels\Pushover\PushoverReceiver;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -47,8 +45,4 @@ Schedule::call(function () {
 
 Schedule::job(ScanBristolAdvertPlanningApplications::class)->dailyAt('08:00')->timezone('Europe/London');
 
-Schedule::call(function () {
-    Notification::route('pushover', PushoverReceiver::withUserKey(config('services.pushover.user_key'))
-        ->withApplicationToken(config('services.pushover.token')))
-        ->notify(new HabitLogReminder);
-})->dailyAt('20:00')->timezone('Europe/London');
+Schedule::job(SendHabitLogReminder::class)->dailyAt('20:00')->timezone('Europe/London');
