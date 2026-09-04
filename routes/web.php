@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PushoverTestController;
+use App\Livewire\Amoeba\Board as AmoebaBoard;
 use App\Livewire\Facebook\Memories\Index as FacebookMemoriesIndex;
 use App\Livewire\Facebook\Posts\Index as FacebookPostsIndex;
 use App\Livewire\Habits\Activities as HabitsActivities;
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('habits/activities', HabitsActivities::class)->name('habits.activities');
 
     Route::livewire('squares', SquaresBoard::class)->name('squares');
+
+    Route::livewire('amoeba', AmoebaBoard::class)->name('amoeba');
 
     Route::get('pushover-test', PushoverTestController::class)
         ->middleware('throttle:6,1')

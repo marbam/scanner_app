@@ -59,9 +59,13 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group :heading="__('Squares')" class="grid">
+                <flux:sidebar.group :heading="__('Play')" class="grid">
                     <flux:sidebar.item icon="squares-2x2" :href="route('squares')" :current="request()->routeIs('squares')" wire:navigate>
-                        {{ __('Board') }}
+                        {{ __('Squares') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="sparkles" :href="route('amoeba')" :current="request()->routeIs('amoeba')" wire:navigate>
+                        {{ __('Amoeba') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
