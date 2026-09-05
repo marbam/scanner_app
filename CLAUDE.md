@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A single-user Laravel app that watches for things going on sale/becoming available (flight fares, ticket on-sale dates, festival tickets) and pushes a Pushover notification the moment one does. Built from the Laravel Livewire + Flux starter kit (Fortify auth). There is no public registration — this app is for one person only, created via an artisan command.
+A single-user Laravel app, originally built to watch for things going on sale/becoming available (flight fares, ticket on-sale dates, festival tickets) and push a Pushover notification the moment one does. It has since grown into more of a personal dashboard/utility app — see "Beyond the sale-watcher: other features" below for the Facebook/Twitter memories browser, the Bristol advertisement-planning scanner, the habit tracker, and the two browser games. Built from the Laravel Livewire + Flux starter kit (Fortify auth). There is no public registration — this app is for one person only, created via an artisan command.
 
 Local dev runs on Laravel Herd at `http://scanner_app.test`. Production is a single DigitalOcean droplet at `https://scanner.marbam.uk`, behind Cloudflare (proxied — see "Production" below).
 
@@ -80,6 +80,45 @@ Odeon's site sits behind Cloudflare bot management (`cdn-cgi/challenge-platform`
 ### Livewire 4 view path convention
 
 A component named `Index` inside a namespaced folder — e.g. `App\Livewire\Interests\Index` — resolves to `resources/views/livewire/interests.blade.php`, **not** `resources/views/livewire/interests/index.blade.php` as Livewire 3 conventions would suggest. This differs from `Settings\Profile` → `livewire/settings/profile.blade.php`, which follows the pattern you'd expect.
+
+## Beyond the sale-watcher: other features
+
+The app has grown into a general personal dashboard beyond the Interest/InterestCheck/Alert sale-watching described above. None of this is documented in the original project brief, so it's outlined here instead.
+
+### Dashboard (`/dashboard`)
+
+`App\Livewire\Dashboard\Index` (view: `resources/views/livewire/dashboard.blade.php`) is the landing page and is deliberately mobile-first — the owner checks it on their phone first thing in the morning. It surfaces four things at a glance, each with a "View all" link to the full page:
+- **Facebook memories** and **Twitter memories** for today's date across all past years (same query shape as the two Memories pages below, just filtered to today and rendered compactly).
+- **Scans gone live** — `Alert`s (see "Domain model" above) with `detected_at` in the last 24 hours, so a released Interest shows up here as well as in the Pushover notification, without a separate trip to `/scans`.
+- **New Bristol adverts** found in the last 24 hours (`PlanningApplication::where('created_at', '>=', now()->subDay())`).
+
+### Facebook posts and memories
+
+`App\Models\FacebookPost` stores posts imported from a Facebook data export via `php artisan app:import-facebook-posts <path to your_posts__check_ins__photos_and_videos_1.json>` (`app/Console/Commands/ImportFacebookPosts.php`, idempotent/safe to re-run). Two Livewire pages read this table:
+- `facebook/posts` (`App\Livewire\Facebook\Posts\Index`) — a searchable, paginated list of every post, with delete.
+- `facebook/memories` (`App\Livewire\Facebook\Memories\Index`) — "on this day" browsing: pick a date (defaults to today, `#[Url]`-bound, prev/next/today controls) and see every post made on that month/day across all years, grouped by year.
+
+### Twitter/X memories
+
+`App\Models\Tweet` stores tweets imported from a Twitter/X data export via `php artisan app:import-tweets <path to tweets.js>` (`app/Console/Commands/ImportTweets.php` — strips the `window.YTD.tweets.part0 = ...` JS-assignment wrapper Twitter's export uses before parsing as JSON). `twitter/memories` (`App\Livewire\Twitter\Memories\Index`) is the same "on this day, grouped by year" pattern as the Facebook memories page, just with no separate "all tweets" listing page.
+
+### Bristol advertisement planning scanner (`bristol-adverts`)
+
+`App\Jobs\ScanBristolAdvertPlanningApplications` (scheduled daily at 08:00 UK time in `routes/console.php`) polls Bristol City Council's public, unauthenticated ArcGIS feature service (`maps2.bristol.gov.uk/.../MapServer/2/query`) rather than the council's own planning portal (`pa.bristol.gov.uk`), which sits behind session/anti-crawling protection and 500s on plain GETs. It filters for `REFVAL LIKE '%/A'` (Bristol's reference suffix for advertisement consent applications — more reliable than text-matching "advert" in the free-text proposal field, which also catches unrelated things like defibrillator cabinets) `AND DEC_DATE IS NULL` (still pending). New references trigger a Pushover notification (`NewPlanningApplicationsFound`). Respects a per-user kill switch, `User::bristol_adverts_scan_enabled` (toggled from the `bristol-adverts` page itself, separate from the `Interest.enabled` flag used by the sale-watching providers). `App\Livewire\PlanningApplications\Index` lists every application found, with a "viewed" toggle and a link out to the council's search page (deep links are blocked, so the reference has to be pasted in manually).
+
+### Habit tracker (`habits/*`)
+
+`App\Models\HabitActivity` (a trackable habit — name, colour, weight, `value_type`, sort order, optional `archived_at`) has many `App\Models\HabitEntry` (one row per activity per date, `completed` boolean + optional numeric `value`). Four Livewire pages: `habits/log` (log today's entries), `habits/tracker`, `habits/summary`, `habits/activities` (manage the activity list). `App\Jobs\SendHabitLogReminder` runs daily at 20:00 UK time and sends a Pushover reminder unless a `HabitEntry` already exists for today — i.e. it's skipped once today's habits have been logged.
+
+### Play: Squares and Amoeba
+
+Two standalone browser toys under `/squares` and `/amoeba`, no persistence/models — pure in-memory Livewire component state per page load:
+- `App\Livewire\Squares\Board` — a 10×10 grid of four colours that animates itself via Livewire polling (`step()`), spreading colour into neighbours each tick until one colour dominates.
+- `App\Livewire\Amoeba\Board` — a 7×7 territory-capture game against a minimax AI (`AI_DEPTH = 3`), corners-start layout, played by the user as one colour against the computer.
+
+### Laravel Pulse (`/pulse`)
+
+Enabled for at-a-glance app activity monitoring (requests, jobs, exceptions, slow queries) — linked from the sidebar, opens in a new tab.
 
 ### Single-user auth
 
