@@ -1,8 +1,8 @@
 <div
     class="flex h-full w-full flex-1 flex-col gap-6"
-    wire:poll.3s="step"
-    x-data="{ remaining: 3 }"
-    x-init="setInterval(() => { remaining = remaining > 1 ? remaining - 1 : 3 }, 1000)"
+    wire:poll.2s="step"
+    x-data="{ remaining: 2 }"
+    x-init="setInterval(() => { remaining = remaining > 1 ? remaining - 1 : 2 }, 1000)"
 >
     <div class="flex items-start justify-between gap-4">
         <div>
@@ -10,7 +10,7 @@
             <flux:subheading>
                 {{ $finished
                     ? __('The board has settled — every square is the same colour.')
-                    : __('Every 6 seconds, one square spreads its colour into a neighbour — outlined first, a beat before it moves.') }}
+                    : __('Every 4 seconds, one square spreads its colour into a neighbour — outlined first, a beat before it moves.') }}
             </flux:subheading>
         </div>
 
