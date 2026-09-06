@@ -50,7 +50,7 @@ class ScanBristolAdvertPlanningApplications implements ShouldQueue
             return;
         }
 
-        $newReferences = [];
+        $newApplications = [];
 
         foreach ($rows as $row) {
             $planningApplication = PlanningApplication::updateOrCreate(
@@ -65,12 +65,12 @@ class ScanBristolAdvertPlanningApplications implements ShouldQueue
             );
 
             if ($planningApplication->wasRecentlyCreated) {
-                $newReferences[] = $row['REFVAL'];
+                $newApplications[] = $planningApplication;
             }
         }
 
-        if ($newReferences !== []) {
-            $this->notifyNewApplications($newReferences);
+        if ($newApplications !== []) {
+            $this->notifyNewApplications($newApplications);
         }
     }
 
@@ -108,12 +108,12 @@ class ScanBristolAdvertPlanningApplications implements ShouldQueue
     }
 
     /**
-     * @param  array<int, string>  $references
+     * @param  array<int, PlanningApplication>  $applications
      */
-    protected function notifyNewApplications(array $references): void
+    protected function notifyNewApplications(array $applications): void
     {
         Notification::route('pushover', PushoverReceiver::withUserKey(config('services.pushover.user_key'))
             ->withApplicationToken(config('services.pushover.token')))
-            ->notify(new NewPlanningApplicationsFound($references));
+            ->notify(new NewPlanningApplicationsFound($applications));
     }
 }

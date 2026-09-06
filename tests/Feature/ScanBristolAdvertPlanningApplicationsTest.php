@@ -57,7 +57,35 @@ it('creates new planning applications and notifies once with all new references'
 
     Notification::assertSentOnDemand(
         NewPlanningApplicationsFound::class,
-        fn (NewPlanningApplicationsFound $notification) => $notification->references === ['26/13085/A', '26/13087/A']
+        fn (NewPlanningApplicationsFound $notification) => array_map(fn ($application) => $application->reference, $notification->applications) === ['26/13085/A', '26/13087/A']
+    );
+});
+
+it('links the notification back to the app when exactly one new application is found', function () {
+    Http::fake([
+        'maps2.bristol.gov.uk/*' => Http::response(fakeArcGisResponse([
+            [
+                'REFVAL' => '26/13085/A',
+                'ADDRESS' => '281 Southmead Road, Bristol, BS10 5EL',
+                'PROPOSAL' => 'Erection of an internally illuminated advertising display.',
+                'STATUS' => 'Pending Consideration',
+                'DECISION' => null,
+                'DEC_DATE' => null,
+            ],
+        ]), 200),
+    ]);
+    Notification::fake();
+
+    (new ScanBristolAdvertPlanningApplications)->handle();
+
+    Notification::assertSentOnDemand(
+        NewPlanningApplicationsFound::class,
+        function (NewPlanningApplicationsFound $notification) {
+            $message = $notification->toPushover(null);
+
+            return $message->url === route('planning-applications.index')
+                && str_contains($message->urlTitle, '26/13085/A');
+        }
     );
 });
 
