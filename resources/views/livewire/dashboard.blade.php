@@ -15,10 +15,11 @@
 
             <div class="flex flex-col gap-6">
                 @forelse ($this->facebookMemoriesByYear as $year => $posts)
+                    @php $yearsAgo = now()->year - $year; @endphp
                     <div class="flex flex-col gap-3">
                         <div class="flex items-center gap-3">
                             <flux:heading size="sm">{{ $year }}</flux:heading>
-                            <flux:badge size="sm" color="sky">{{ $posts[0]->posted_at->diffForHumans(['parts' => 1]) }}</flux:badge>
+                            <flux:badge size="sm" color="sky">{{ $yearsAgo === 0 ? __('This year') : trans_choice(':count year ago|:count years ago', $yearsAgo, ['count' => $yearsAgo]) }}</flux:badge>
                         </div>
 
                         <div class="flex flex-col gap-3">
@@ -55,10 +56,11 @@
 
             <div class="flex flex-col gap-6">
                 @forelse ($this->twitterMemoriesByYear as $year => $tweets)
+                    @php $yearsAgo = now()->year - $year; @endphp
                     <div class="flex flex-col gap-3">
                         <div class="flex items-center gap-3">
                             <flux:heading size="sm">{{ $year }}</flux:heading>
-                            <flux:badge size="sm" color="sky">{{ $tweets[0]->posted_at->diffForHumans(['parts' => 1]) }}</flux:badge>
+                            <flux:badge size="sm" color="sky">{{ $yearsAgo === 0 ? __('This year') : trans_choice(':count year ago|:count years ago', $yearsAgo, ['count' => $yearsAgo]) }}</flux:badge>
                         </div>
 
                         <div class="flex flex-col gap-3">
