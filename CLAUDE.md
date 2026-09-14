@@ -116,10 +116,6 @@ Two standalone browser toys under `/squares` and `/amoeba`, no persistence/model
 - `App\Livewire\Squares\Board` — a 10×10 grid of four colours that animates itself via Livewire polling (`step()`), spreading colour into neighbours each tick until one colour dominates.
 - `App\Livewire\Amoeba\Board` — a 7×7 territory-capture game against a minimax AI (`AI_DEPTH = 3`), corners-start layout, played by the user as one colour against the computer.
 
-### Laravel Pulse (`/pulse`)
-
-Enabled for at-a-glance app activity monitoring (requests, jobs, exceptions, slow queries) — linked from the sidebar, opens in a new tab.
-
 ### Single-user auth
 
 Registration is fully removed, not just hidden: `Features::registration()` is absent from `config/fortify.php`'s feature list, so Fortify never registers the `/register` routes at all, and `app/Actions/Fortify/CreateNewUser.php` doesn't exist. The only way to create the account is `php artisan app:create-owner-user`, which reads `OWNER_NAME`/`OWNER_EMAIL`/`OWNER_PASSWORD` from `.env` (via `config/owner.php`) and does an idempotent `updateOrCreate` — safe to re-run after changing the password in `.env`. `User::$fillable` is set via a `#[Fillable(...)]` attribute restricted to `['name', 'email', 'password']`, so anything else (like `email_verified_at`) needs `forceFill()`.
