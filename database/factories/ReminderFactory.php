@@ -20,11 +20,17 @@ class ReminderFactory extends Factory
             'time' => '07:30:00',
             'days_of_week' => [1, 2, 3, 4, 5],
             'is_active' => true,
+            'fires_once' => false,
         ];
     }
 
     public function inactive(): static
     {
         return $this->state(fn () => ['is_active' => false]);
+    }
+
+    public function firesOnce(): static
+    {
+        return $this->state(fn () => ['fires_once' => true]);
     }
 }

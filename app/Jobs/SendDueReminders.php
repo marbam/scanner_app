@@ -28,6 +28,10 @@ class SendDueReminders implements ShouldQueue
                 Notification::route('pushover', PushoverReceiver::withUserKey(config('services.pushover.user_key'))
                     ->withApplicationToken(config('services.pushover.token')))
                     ->notify(new ReminderDue($reminder));
+
+                if ($reminder->fires_once) {
+                    $reminder->update(['is_active' => false]);
+                }
             });
     }
 }

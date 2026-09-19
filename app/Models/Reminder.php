@@ -22,6 +22,7 @@ class Reminder extends Model
         'time',
         'days_of_week',
         'is_active',
+        'fires_once',
     ];
 
     protected function casts(): array
@@ -29,6 +30,7 @@ class Reminder extends Model
         return [
             'days_of_week' => 'array',
             'is_active' => 'boolean',
+            'fires_once' => 'boolean',
         ];
     }
 

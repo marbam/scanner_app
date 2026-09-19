@@ -29,14 +29,26 @@
             <flux:label>{{ __('Days') }}</flux:label>
             <div class="flex flex-wrap gap-3">
                 @foreach ($this->dayOptions() as $value => $label)
-                    <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-                        <input type="checkbox" value="{{ $value }}" wire:model="days" class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600" />
+                    <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300 {{ $todayOnly ? 'opacity-50' : '' }}">
+                        <input type="checkbox" value="{{ $value }}" wire:model="days" class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600" @disabled($todayOnly) />
                         {{ __($label) }}
                     </label>
                 @endforeach
             </div>
             <flux:error name="days" />
         </flux:field>
+
+        <div class="flex flex-wrap gap-6">
+            <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                <input type="checkbox" wire:model.live="todayOnly" class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600" />
+                {{ __('Today only') }}
+            </label>
+
+            <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                <input type="checkbox" wire:model="firesOnce" class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600" @disabled($todayOnly) />
+                {{ __('Only once') }}
+            </label>
+        </div>
 
         <div>
             <flux:button type="submit" variant="primary">{{ __('Add reminder') }}</flux:button>
@@ -70,9 +82,18 @@
                     <div class="flex flex-wrap items-center gap-3">
                         <flux:button type="submit" size="sm" variant="ghost">{{ __('Save') }}</flux:button>
 
+                        <label class="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+                            <input type="checkbox" wire:model="edits.{{ $reminder->id }}.fires_once" class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600" />
+                            {{ __('Only once') }}
+                        </label>
+
                         <flux:badge size="sm" :color="$reminder->is_active ? 'green' : 'zinc'">
                             {{ $reminder->is_active ? __('Active') : __('Inactive') }}
                         </flux:badge>
+
+                        @if ($reminder->fires_once)
+                            <flux:badge size="sm" color="amber">{{ __('Once') }}</flux:badge>
+                        @endif
 
                         <flux:button size="sm" variant="ghost" wire:click="toggleActive({{ $reminder->id }})">
                             {{ $reminder->is_active ? __('Deactivate') : __('Activate') }}

@@ -76,3 +76,34 @@ test('skips an inactive reminder even when it matches', function () {
 
     Notification::assertNothingSent();
 });
+
+test('a fires-once reminder deactivates itself after sending', function () {
+    Notification::fake();
+
+    $reminder = Reminder::factory()->firesOnce()->create([
+        'time' => '07:30:00',
+        'days_of_week' => [1, 2, 3, 4, 5],
+        'is_active' => true,
+    ]);
+
+    (new SendDueReminders)->handle();
+
+    Notification::assertSentOnDemand(ReminderDue::class);
+    expect($reminder->fresh()->is_active)->toBeFalse();
+});
+
+test('a recurring reminder stays active after sending', function () {
+    Notification::fake();
+
+    $reminder = Reminder::factory()->create([
+        'time' => '07:30:00',
+        'days_of_week' => [1, 2, 3, 4, 5],
+        'is_active' => true,
+        'fires_once' => false,
+    ]);
+
+    (new SendDueReminders)->handle();
+
+    Notification::assertSentOnDemand(ReminderDue::class);
+    expect($reminder->fresh()->is_active)->toBeTrue();
+});
