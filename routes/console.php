@@ -5,6 +5,7 @@ use App\Jobs\CheckRyanairAvailability;
 use App\Jobs\CheckShowcaseCinemaOnSale;
 use App\Jobs\CheckTicketmasterEventOnSale;
 use App\Jobs\ScanBristolAdvertPlanningApplications;
+use App\Jobs\SendDueReminders;
 use App\Jobs\SendHabitLogReminder;
 use App\Models\Alert;
 use App\Models\Interest;
@@ -48,6 +49,8 @@ Schedule::call(function () {
 Schedule::job(ScanBristolAdvertPlanningApplications::class)->dailyAt('08:00')->timezone('Europe/London');
 
 Schedule::job(SendHabitLogReminder::class)->dailyAt('20:00')->timezone('Europe/London');
+
+Schedule::job(SendDueReminders::class)->everyMinute()->timezone('Europe/London');
 
 Schedule::command('model:prune', ['--model' => [Alert::class, InterestCheck::class]])
     ->dailyAt('03:00')

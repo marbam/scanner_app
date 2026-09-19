@@ -11,6 +11,7 @@ use App\Livewire\Habits\Summary as HabitsSummary;
 use App\Livewire\Habits\Tracker as HabitsTracker;
 use App\Livewire\Interests\Index as InterestsIndex;
 use App\Livewire\PlanningApplications\Index as PlanningApplicationsIndex;
+use App\Livewire\Reminders\Index as RemindersIndex;
 use App\Livewire\Squares\Board as SquaresBoard;
 use App\Livewire\Twitter\Memories\Index as TwitterMemoriesIndex;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('habits/summary', HabitsSummary::class)->name('habits.summary');
 
     Route::livewire('habits/activities', HabitsActivities::class)->name('habits.activities');
+
+    Route::livewire('reminders', RemindersIndex::class)->name('reminders.index');
 
     Route::livewire('squares', SquaresBoard::class)->name('squares');
 
