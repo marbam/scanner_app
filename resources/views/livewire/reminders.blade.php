@@ -61,7 +61,7 @@
         @forelse ($this->reminders as $reminder)
             <div
                 wire:key="reminder-{{ $reminder->id }}"
-                class="flex flex-col gap-3 rounded-lg border p-3 {{ $reminder->is_active ? 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900' : 'border-zinc-200 bg-zinc-50 opacity-75 dark:border-zinc-700 dark:bg-zinc-800/60' }}"
+                class="flex flex-col gap-3 rounded-lg border p-3 {{ $reminder->is_active ? 'border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900' : 'border-dashed border-zinc-300 bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800' }}"
             >
                 <form wire:submit="updateReminder({{ $reminder->id }})" class="flex flex-col gap-3">
                     <div class="flex flex-wrap items-end gap-3">
@@ -87,9 +87,13 @@
                             {{ __('Only once') }}
                         </label>
 
-                        <flux:badge size="sm" :color="$reminder->is_active ? 'green' : 'zinc'">
-                            {{ $reminder->is_active ? __('Active') : __('Inactive') }}
-                        </flux:badge>
+                        @if ($reminder->is_active)
+                            <flux:badge size="sm" color="green">{{ __('Active') }}</flux:badge>
+                        @elseif ($reminder->fires_once)
+                            <flux:badge size="sm" color="zinc">{{ __('Expired') }}</flux:badge>
+                        @else
+                            <flux:badge size="sm" color="zinc">{{ __('Inactive') }}</flux:badge>
+                        @endif
 
                         @if ($reminder->fires_once)
                             <flux:badge size="sm" color="amber">{{ __('Once') }}</flux:badge>
