@@ -110,6 +110,12 @@ The app has grown into a general personal dashboard beyond the Interest/Interest
 
 `App\Models\HabitActivity` (a trackable habit — name, colour, weight, `value_type`, sort order, optional `archived_at`) has many `App\Models\HabitEntry` (one row per activity per date, `completed` boolean + optional numeric `value`). Four Livewire pages: `habits/log` (log today's entries), `habits/tracker`, `habits/summary`, `habits/activities` (manage the activity list). `App\Jobs\SendHabitLogReminder` runs daily at 20:00 UK time and sends a Pushover reminder unless a `HabitEntry` already exists for today — i.e. it's skipped once today's habits have been logged.
 
+### What to play (`games`)
+
+Rule-based (no AI) game picker over the owner's Steam library. `App\Models\SteamGame` is filled by two jobs: `SyncSteamLibrary` (official `IPlayerService/GetOwnedGames`, daily 04:00 UK; needs `STEAM_API_KEY` + `STEAM_ID` and the profile's "Game details" set to Public) and `FetchSteamGameDetails` (hourly, 50 games per run; store type/genres/categories from the unofficial `store.steampowered.com/api/appdetails`, community tags from SteamSpy, throttled ~1.5s per game). Re-syncs only update library fields, never the owner's `never_suggest`/`skipped_until` choices. Initial fill: `php artisan app:sync-steam-library` then `php artisan app:sync-steam-game-details` (~25 min for ~630 games; safe to re-run, it resumes). SteamSpy tag names are hyphenated (`Rogue-like`, `Rogue-lite`, `Base-Building`).
+
+`App\Support\GameSuggester` scores eligible games against tag weights in `config/steam_moods.php` (tune suggestions there), weighting a game's top tags more heavily, then draws a few at random from the top `pool_size`. Single-player rule: a game is excluded only if Steam lists it as multiplayer and *not* single-player — games with both (e.g. Ticket to Ride vs AI) stay in. `App\Livewire\Games\Index` (view `livewire/games.blade.php`) is the question/results page.
+
 ### Play: Squares and Amoeba
 
 Two standalone browser toys under `/squares` and `/amoeba`, no persistence/models — pure in-memory Livewire component state per page load:

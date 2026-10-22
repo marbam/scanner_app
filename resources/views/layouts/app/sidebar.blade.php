@@ -66,6 +66,10 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group :heading="__('Play')" class="grid">
+                    <flux:sidebar.item icon="puzzle-piece" :href="route('games.index')" :current="request()->routeIs('games.index')" wire:navigate>
+                        {{ __('What to play') }}
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="squares-2x2" :href="route('squares')" :current="request()->routeIs('squares')" wire:navigate>
                         {{ __('Squares') }}
                     </flux:sidebar.item>

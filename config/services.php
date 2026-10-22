@@ -48,4 +48,9 @@ return [
         'key' => env('TICKETMASTER_API_KEY'),
     ],
 
+    'steam' => [
+        'key' => env('STEAM_API_KEY'),
+        'steam_id' => env('STEAM_ID'),
+    ],
+
 ];

@@ -4,9 +4,11 @@ use App\Jobs\CheckComedyFestivalOnSale;
 use App\Jobs\CheckRyanairAvailability;
 use App\Jobs\CheckShowcaseCinemaOnSale;
 use App\Jobs\CheckTicketmasterEventOnSale;
+use App\Jobs\FetchSteamGameDetails;
 use App\Jobs\ScanBristolAdvertPlanningApplications;
 use App\Jobs\SendDueReminders;
 use App\Jobs\SendHabitLogReminder;
+use App\Jobs\SyncSteamLibrary;
 use App\Models\Alert;
 use App\Models\Interest;
 use App\Models\InterestCheck;
@@ -51,6 +53,11 @@ Schedule::job(ScanBristolAdvertPlanningApplications::class)->dailyAt('08:00')->t
 Schedule::job(SendHabitLogReminder::class)->dailyAt('20:00')->timezone('Europe/London');
 
 Schedule::job(SendDueReminders::class)->everyMinute()->timezone('Europe/London');
+
+Schedule::job(SyncSteamLibrary::class)->dailyAt('04:00')->timezone('Europe/London');
+
+// Picks up details/tags for newly bought games; a no-op once everything's filled in.
+Schedule::job(new FetchSteamGameDetails(limit: 50))->hourlyAt(15);
 
 Schedule::command('model:prune', ['--model' => [Alert::class, InterestCheck::class]])
     ->dailyAt('03:00')
