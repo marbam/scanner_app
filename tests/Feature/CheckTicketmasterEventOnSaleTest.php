@@ -90,6 +90,25 @@ it('skips parsing and notifying when the response is unchanged', function () {
     ]);
 });
 
+it('recovers from error once a later check succeeds with the same response as before the error', function () {
+    $body = json_encode(['page' => ['size' => 20, 'totalElements' => 0, 'totalPages' => 0, 'number' => 0]]);
+    $this->interest->update(['last_response_hash' => md5($body)]);
+
+    Http::fake([
+        'app.ticketmaster.com/*' => Http::sequence()
+            ->push('Service Unavailable', 503)
+            ->push($body, 200),
+    ]);
+    Notification::fake();
+
+    (new CheckTicketmasterEventOnSale($this->interest))->handle();
+    expect($this->interest->fresh()->status)->toBe('error');
+
+    (new CheckTicketmasterEventOnSale($this->interest->fresh()))->handle();
+    expect($this->interest->fresh()->status)->toBe('watching');
+    Notification::assertNothingSent();
+});
+
 it('logs an error and updates status on request failure', function () {
     Http::fake([
         'app.ticketmaster.com/*' => Http::response('Unauthorized', 401),

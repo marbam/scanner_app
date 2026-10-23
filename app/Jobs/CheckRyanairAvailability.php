@@ -68,7 +68,10 @@ class CheckRyanairAvailability implements ShouldQueue
             }
         } catch (\Throwable $e) {
             Log::warning("Interest check failed for {$this->interest->id}: {$e->getMessage()}");
-            $this->interest->update(['status' => 'error', 'last_checked_at' => now()]);
+            // Forget the last response so the next successful check is evaluated
+            // in full and resets the status, rather than matching the old hash
+            // as 'unchanged' and leaving this interest stuck on 'error'.
+            $this->interest->update(['status' => 'error', 'last_checked_at' => now(), 'last_response_hash' => null]);
             $this->logCheck(null, 'error', $e->getMessage());
         }
     }

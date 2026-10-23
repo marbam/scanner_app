@@ -123,3 +123,16 @@ it('logs an error and updates status on request failure', function () {
         'outcome' => 'error',
     ]);
 });
+
+it('forgets the last response on failure so the next success resets the status', function () {
+    $this->interest->update(['last_response_hash' => 'previous-hash']);
+
+    Http::fake(['*' => Http::response('Server error', 500)]);
+    Notification::fake();
+
+    (new CheckRyanairAvailability($this->interest))->handle();
+
+    expect($this->interest->fresh())
+        ->status->toBe('error')
+        ->last_response_hash->toBeNull();
+});
