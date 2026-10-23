@@ -34,7 +34,7 @@
                                     @endif
 
                                     @if ($post->body)
-                                        <flux:text class="line-clamp-3 whitespace-pre-line">{{ $post->body }}</flux:text>
+                                        <flux:text class="whitespace-pre-line break-words">{{ $post->body }}</flux:text>
                                     @endif
                                 </div>
                             @endforeach
@@ -60,13 +60,13 @@
                     <div class="flex flex-col gap-3">
                         <div class="flex items-center gap-3">
                             <flux:heading size="sm">{{ $year }}</flux:heading>
-                            <flux:badge size="sm" color="sky">{{ $yearsAgo === 0 ? __('This year') : trans_choice(':count year ago|:count years ago', $yearsAgo, ['count' => $yearsAgo]) }}</flux:badge>
+                            <flux:badge size="sm" color="violet">{{ $yearsAgo === 0 ? __('This year') : trans_choice(':count year ago|:count years ago', $yearsAgo, ['count' => $yearsAgo]) }}</flux:badge>
                         </div>
 
                         <div class="flex flex-col gap-3">
                             @foreach ($tweets as $tweet)
-                                <div wire:key="dashboard-tw-{{ $tweet->id }}" class="rounded-lg border-l-4 border-sky-400 bg-sky-50/50 p-3 shadow-sm dark:border-sky-500 dark:bg-sky-950/20">
-                                    <flux:text class="line-clamp-3 whitespace-pre-line">{{ $tweet->body }}</flux:text>
+                                <div wire:key="dashboard-tw-{{ $tweet->id }}" class="rounded-lg border-l-4 border-violet-400 bg-violet-50/50 p-3 shadow-sm dark:border-violet-500 dark:bg-violet-950/20">
+                                    <flux:text class="whitespace-pre-line break-words">{{ $tweet->body }}</flux:text>
                                 </div>
                             @endforeach
                         </div>
