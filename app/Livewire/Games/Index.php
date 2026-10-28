@@ -24,6 +24,9 @@ class Index extends Component
 
     public bool $asked = false;
 
+    /** Leave out games with every achievement unlocked (rarely worth revisiting). */
+    public bool $hideCompleted = true;
+
     public function mount(): void
     {
         $this->answers = GameSuggester::defaultAnswers();
@@ -40,7 +43,7 @@ class Index extends Component
     {
         $this->suggestions = array_map(
             fn (array $pick) => ['id' => $pick['game']->id, 'reasons' => $pick['reasons']],
-            (new GameSuggester)->suggest($this->answers),
+            (new GameSuggester)->suggest($this->answers, hideCompleted: $this->hideCompleted),
         );
 
         $this->asked = true;

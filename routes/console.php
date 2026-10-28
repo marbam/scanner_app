@@ -4,6 +4,7 @@ use App\Jobs\CheckComedyFestivalOnSale;
 use App\Jobs\CheckRyanairAvailability;
 use App\Jobs\CheckShowcaseCinemaOnSale;
 use App\Jobs\CheckTicketmasterEventOnSale;
+use App\Jobs\FetchSteamAchievements;
 use App\Jobs\FetchSteamGameDetails;
 use App\Jobs\ScanBristolAdvertPlanningApplications;
 use App\Jobs\SendDueReminders;
@@ -58,6 +59,9 @@ Schedule::job(SyncSteamLibrary::class)->dailyAt('04:00')->timezone('Europe/Londo
 
 // Picks up details/tags for newly bought games; a no-op once everything's filled in.
 Schedule::job(new FetchSteamGameDetails(limit: 50))->hourlyAt(15);
+
+// Only re-checks games played since their last fetch (plus any never fetched).
+Schedule::job(new FetchSteamAchievements(limit: 100))->hourlyAt(45);
 
 Schedule::command('model:prune', ['--model' => [Alert::class, InterestCheck::class]])
     ->dailyAt('03:00')

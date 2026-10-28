@@ -71,17 +71,22 @@ class GameSuggester
 
     /**
      * @param  array<string, string>  $answers
+     * @param  bool  $hideCompleted  leave out games with every achievement unlocked
+     *                               (ignored when the achievements answer asks for them)
      * @return list<array{game: SteamGame, score: float, reasons: list<string>}>
      */
-    public function suggest(array $answers, int $count = 3): array
+    public function suggest(array $answers, int $count = 3, bool $hideCompleted = true): array
     {
         $answers = $this->normaliseAnswers($answers);
         $weights = $this->tagWeights($answers);
 
+        /** @var string|null $achievementFilter */
+        $achievementFilter = self::questions()['achievements']['options'][$answers['achievements'] ?? 'any']['achievements'] ?? null;
+
         $scored = [];
 
         foreach ($this->candidates($answers)->get() as $game) {
-            if (! self::isEligible($game)) {
+            if (! self::isEligible($game) || ! $this->passesAchievementFilter($game, $achievementFilter, $hideCompleted)) {
                 continue;
             }
 
@@ -99,6 +104,25 @@ class GameSuggester
         $pool = array_slice($scored, 0, max($count, (int) config('steam_moods.pool_size', 15)));
 
         return $this->weightedPick($pool, $count);
+    }
+
+    private function passesAchievementFilter(SteamGame $game, ?string $filter, bool $hideCompleted): bool
+    {
+        if ($filter === 'complete') {
+            return $game->isFullyAchieved();
+        }
+
+        if ($hideCompleted && $game->isFullyAchieved()) {
+            return false;
+        }
+
+        $percent = $game->achievementPercent();
+
+        return match ($filter) {
+            'incomplete' => $percent !== null && $percent < 100,
+            'nearly' => $percent !== null && $percent < 100 && $percent >= (float) config('steam_moods.nearly_there_percent', 75),
+            default => true,
+        };
     }
 
     /**

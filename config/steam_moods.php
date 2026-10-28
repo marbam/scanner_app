@@ -13,7 +13,8 @@
 | Tuning: if suggestions feel off, change the numbers here. Positive = more
 | likely, negative = less likely. Nothing else needs to change.
 |
-| 'familiarity' options filter by your playtime (minutes) rather than
+| 'familiarity' options filter by your playtime (minutes) and
+| 'achievements' options filter by achievement progress, rather than
 | scoring tags.
 |
 */
@@ -33,6 +34,9 @@ return [
     // How long "Not tonight" hides a game for.
     'skip_days' => 7,
 
+    // "Nearly there" = at least this % of achievements unlocked (but not 100%).
+    'nearly_there_percent' => 75,
+
     'questions' => [
 
         'time' => [
@@ -49,16 +53,8 @@ return [
                     ],
                 ],
                 'evening' => [
-                    'label' => 'An evening',
+                    'label' => 'An hour or two',
                     'tags' => [],
-                ],
-                'long' => [
-                    'label' => 'A long session',
-                    'tags' => [
-                        'Open World' => 2, 'RPG' => 2, 'Automation' => 2, 'Base-Building' => 2, 'Grand Strategy' => 2,
-                        '4X' => 2, 'Colony Sim' => 2, 'City Builder' => 2, 'Sandbox' => 1, 'Exploration' => 1,
-                        'Short' => -2, 'Arcade' => -1,
-                    ],
                 ],
             ],
         ],
@@ -108,25 +104,85 @@ return [
                         'Adventure' => 1, 'Atmospheric' => 1, 'Mystery' => 1, 'Detective' => 1,
                     ],
                 ],
+                'explore' => [
+                    'label' => 'Explore',
+                    'tags' => [
+                        'Exploration' => 3, 'Open World' => 2, 'Walking Simulator' => 2, 'Atmospheric' => 1,
+                        'Space' => 1, 'Adventure' => 1, 'Beautiful' => 1,
+                    ],
+                ],
                 'build' => [
                     'label' => 'Build & manage',
                     'tags' => [
                         'Automation' => 3, 'City Builder' => 3, 'Management' => 3, 'Base-Building' => 2, 'Building' => 2,
-                        'Colony Sim' => 2, 'Resource Management' => 2, 'Simulation' => 1, 'Sandbox' => 1, 'Crafting' => 1,
+                        'Colony Sim' => 2, 'Resource Management' => 2, 'Economy' => 1, 'Simulation' => 1, 'Sandbox' => 1,
+                    ],
+                ],
+                'survival' => [
+                    'label' => 'Survival & crafting',
+                    'tags' => [
+                        'Survival' => 3, 'Open World Survival Craft' => 3, 'Crafting' => 2, 'Base-Building' => 1,
+                        'Sandbox' => 1, 'Post-apocalyptic' => 1, 'Zombies' => 1,
+                    ],
+                ],
+                'strategy' => [
+                    'label' => 'Strategy & tactics',
+                    'tags' => [
+                        'Turn-Based Strategy' => 3, 'Turn-Based Tactics' => 3, 'Strategy' => 2, 'Tactical' => 2, 'RTS' => 2,
+                        '4X' => 2, 'Grand Strategy' => 2, 'Wargame' => 1, 'Turn-Based' => 1,
+                    ],
+                ],
+                'puzzle' => [
+                    'label' => 'Puzzles',
+                    'tags' => [
+                        'Puzzle' => 3, 'Logic' => 2, 'Puzzle Platformer' => 2, 'Point & Click' => 1, 'Hidden Object' => 1,
+                    ],
+                ],
+                'cards' => [
+                    'label' => 'Card & board games',
+                    'tags' => [
+                        'Card Game' => 3, 'Board Game' => 3, 'Tabletop' => 2, 'Deckbuilding' => 2, 'Card Battler' => 2,
+                        'Roguelike Deckbuilder' => 1,
+                    ],
+                ],
+                'roguelike' => [
+                    'label' => 'Roguelikes',
+                    'tags' => [
+                        'Rogue-like' => 3, 'Rogue-lite' => 3, 'Action Roguelike' => 2, 'Roguelike Deckbuilder' => 2,
+                        'Replay Value' => 1, 'Procedural Generation' => 1,
+                    ],
+                ],
+                'rpg' => [
+                    'label' => 'RPG',
+                    'tags' => [
+                        'RPG' => 3, 'Action RPG' => 2, 'CRPG' => 2, 'Party-Based RPG' => 2, 'JRPG' => 2,
+                        'Character Customization' => 1, 'Fantasy' => 1,
                     ],
                 ],
                 'action' => [
                     'label' => 'Action',
                     'tags' => [
                         'Action' => 2, 'Shooter' => 2, 'FPS' => 2, 'Hack and Slash' => 2, 'Third-Person Shooter' => 1,
-                        'Combat' => 1, 'Platformer' => 1, 'Action-Adventure' => 1,
+                        'Combat' => 1, 'Action-Adventure' => 1, 'Fighting' => 1, "Beat 'em up" => 1,
                     ],
                 ],
-                'think' => [
-                    'label' => 'Something to think about',
+                'arcade' => [
+                    'label' => 'Arcade & retro',
                     'tags' => [
-                        'Puzzle' => 3, 'Strategy' => 2, 'Turn-Based Strategy' => 2, 'Card Game' => 2, 'Deckbuilding' => 2,
-                        'Board Game' => 2, 'Tactical' => 2, 'Logic' => 2, 'Turn-Based' => 1,
+                        'Arcade' => 3, 'Retro' => 2, 'Platformer' => 2, '2D Platformer' => 1, "Shoot 'Em Up" => 2,
+                        'Pixel Graphics' => 1, 'Classic' => 1,
+                    ],
+                ],
+                'funny' => [
+                    'label' => 'Something silly',
+                    'tags' => [
+                        'Funny' => 3, 'Comedy' => 3, 'Physics' => 1, 'Cartoony' => 1, 'Party Game' => 1,
+                    ],
+                ],
+                'spooky' => [
+                    'label' => 'Spooky',
+                    'tags' => [
+                        'Horror' => 3, 'Psychological Horror' => 2, 'Survival Horror' => 2, 'Dark' => 1, 'Atmospheric' => 1,
                     ],
                 ],
             ],
@@ -140,6 +196,19 @@ return [
                 'new' => ['label' => 'Something new', 'min_minutes' => null, 'max_minutes' => 59],
                 'started' => ['label' => 'Something I\'ve started', 'min_minutes' => 60, 'max_minutes' => 599],
                 'favourite' => ['label' => 'An old favourite', 'min_minutes' => 600, 'max_minutes' => null],
+            ],
+        ],
+
+        // Filters on achievement progress rather than scoring tags. Games with
+        // no achievements (or not fetched yet) only appear under "Don't mind".
+        'achievements' => [
+            'label' => 'Achievements?',
+            'default' => 'any',
+            'options' => [
+                'any' => ['label' => 'Don\'t mind', 'achievements' => null],
+                'collect' => ['label' => 'Collect more', 'achievements' => 'incomplete'],
+                'nearly' => ['label' => 'Nearly there', 'achievements' => 'nearly'],
+                'completed' => ['label' => 'Completed 100%', 'achievements' => 'complete'],
             ],
         ],
 

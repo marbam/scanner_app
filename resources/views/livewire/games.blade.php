@@ -33,6 +33,12 @@
                 </div>
             @endforeach
 
+            @php($wantsCompleted = ($answers['achievements'] ?? null) === 'completed')
+            <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 {{ $wantsCompleted ? 'opacity-50' : '' }}">
+                <input type="checkbox" wire:model="hideCompleted" class="h-5 w-5 rounded border-zinc-300 dark:border-zinc-600" @disabled($wantsCompleted) />
+                {{ __('Hide games I\'ve 100%\'d') }}
+            </label>
+
             <div>
                 <flux:button variant="primary" wire:click="suggest" icon="sparkles">
                     {{ $asked ? __('Shuffle again') : __('Suggest games') }}
@@ -68,6 +74,20 @@
                                     @endif
                                 @endif
                             </div>
+
+                            @if ($game->isFullyAchieved())
+                                <div>
+                                    <flux:badge size="sm" color="amber" icon="trophy">{{ __('All :count achievements', ['count' => $game->achievements_total]) }}</flux:badge>
+                                </div>
+                            @elseif ($game->hasAchievements())
+                                <div class="text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ __('Achievements: :unlocked / :total (:percent%)', [
+                                        'unlocked' => $game->achievements_unlocked ?? 0,
+                                        'total' => $game->achievements_total,
+                                        'percent' => (int) floor((float) $game->achievementPercent()),
+                                    ]) }}
+                                </div>
+                            @endif
 
                             @if ($game->short_description)
                                 <p class="line-clamp-3 text-sm text-zinc-700 dark:text-zinc-300">{{ $game->short_description }}</p>

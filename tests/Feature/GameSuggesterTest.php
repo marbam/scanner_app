@@ -8,9 +8,9 @@ use Livewire\Livewire;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 
-function suggestedNames(array $answers, int $count = 3, int $seed = 1): array
+function suggestedNames(array $answers, int $count = 3, int $seed = 1, bool $hideCompleted = true): array
 {
-    $picks = (new GameSuggester(new Randomizer(new Mt19937($seed))))->suggest($answers, $count);
+    $picks = (new GameSuggester(new Randomizer(new Mt19937($seed))))->suggest($answers, $count, $hideCompleted);
 
     return array_map(fn (array $pick) => $pick['game']->name, $picks);
 }
@@ -72,7 +72,7 @@ it('weights a game\'s top tags more than its minor ones', function () {
     singlePlayerGame('Minor Puzzle', [...$unmatched, 'Puzzle']);
     singlePlayerGame('Major Puzzle', ['Puzzle', 'Indie']);
 
-    $picks = (new GameSuggester(new Randomizer(new Mt19937(1))))->suggest(['focus' => 'think'], count: 2);
+    $picks = (new GameSuggester(new Randomizer(new Mt19937(1))))->suggest(['focus' => 'puzzle'], count: 2);
     $scores = collect($picks)->mapWithKeys(fn (array $pick) => [$pick['game']->name => $pick['score']]);
 
     expect($scores['Major Puzzle'])->toBeGreaterThan($scores['Minor Puzzle']);
@@ -118,6 +118,39 @@ it('draws only from the top of the list', function () {
     }
 });
 
+describe('achievements', function () {
+    beforeEach(function () {
+        singlePlayerGame('All Done', ['Puzzle'], ['achievements_total' => 49, 'achievements_unlocked' => 49]);
+        singlePlayerGame('Nearly Done', ['Puzzle'], ['achievements_total' => 40, 'achievements_unlocked' => 36]);
+        singlePlayerGame('Barely Started', ['Puzzle'], ['achievements_total' => 40, 'achievements_unlocked' => 2]);
+        singlePlayerGame('No Achievements', ['Puzzle'], ['achievements_total' => 0, 'achievements_unlocked' => 0]);
+        singlePlayerGame('Not Fetched', ['Puzzle']);
+    });
+
+    it('hides 100% games by default but can include them', function () {
+        expect(suggestedNames([], count: 10))->not->toContain('All Done')->toHaveCount(4)
+            ->and(suggestedNames([], count: 10, hideCompleted: false))->toContain('All Done')->toHaveCount(5);
+    });
+
+    it('collect more keeps games with achievements still to unlock', function () {
+        expect(suggestedNames(['achievements' => 'collect'], count: 10))
+            ->toEqualCanonicalizing(['Nearly Done', 'Barely Started']);
+    });
+
+    it('nearly there keeps games at or above the threshold but not complete', function () {
+        expect(suggestedNames(['achievements' => 'nearly'], count: 10))->toBe(['Nearly Done']);
+    });
+
+    it('completed shows only 100% games, even with the hide toggle on', function () {
+        expect(suggestedNames(['achievements' => 'completed'], count: 10, hideCompleted: true))->toBe(['All Done']);
+    });
+});
+
+it('no longer offers a long session option', function () {
+    expect(GameSuggester::questions()['time']['options'])->not->toHaveKey('long')
+        ->and(GameSuggester::defaultAnswers()['time'])->toBe('evening');
+});
+
 describe('the What to play page', function () {
     beforeEach(function () {
         $this->actingAs(User::factory()->create());
@@ -142,6 +175,20 @@ describe('the What to play page', function () {
             ->assertSee('Stardew Valley')
             ->assertSee('Relaxing')
             ->assertSee('steam://run/');
+    });
+
+    it('shows achievement progress and respects the hide-100% toggle', function () {
+        singlePlayerGame('Stardew Valley', ['Relaxing'], ['achievements_total' => 49, 'achievements_unlocked' => 49]);
+        singlePlayerGame('Factorio', ['Automation'], ['achievements_total' => 40, 'achievements_unlocked' => 30]);
+
+        Livewire::test(Index::class)
+            ->call('suggest')
+            ->assertSee('Factorio')
+            ->assertSee('Achievements: 30 / 40 (75%)')
+            ->assertDontSee('Stardew Valley')
+            ->set('hideCompleted', false)
+            ->call('suggest')
+            ->assertSee('All 49 achievements');
     });
 
     it('ignores an invalid option', function () {
