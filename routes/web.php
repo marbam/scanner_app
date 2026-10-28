@@ -6,6 +6,7 @@ use App\Livewire\Dashboard\Index as DashboardIndex;
 use App\Livewire\Facebook\Memories\Index as FacebookMemoriesIndex;
 use App\Livewire\Facebook\Posts\Index as FacebookPostsIndex;
 use App\Livewire\Games\Index as GamesIndex;
+use App\Livewire\Games\Played as GamesPlayed;
 use App\Livewire\Habits\Activities as HabitsActivities;
 use App\Livewire\Habits\Log as HabitsLog;
 use App\Livewire\Habits\Summary as HabitsSummary;
@@ -43,6 +44,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('reminders', RemindersIndex::class)->name('reminders.index');
 
     Route::livewire('games', GamesIndex::class)->name('games.index');
+
+    Route::livewire('games/played', GamesPlayed::class)->name('games.played');
 
     Route::livewire('squares', SquaresBoard::class)->name('squares');
 

@@ -60,6 +60,10 @@
                         {{ __('What to play') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="calendar-days" :href="route('games.played')" :current="request()->routeIs('games.played')" wire:navigate>
+                        {{ __('Played') }}
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="squares-2x2" :href="route('squares')" :current="request()->routeIs('squares')" wire:navigate>
                         {{ __('Squares') }}
                     </flux:sidebar.item>

@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Database\Factories\SteamGameFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $appid
@@ -97,5 +98,13 @@ class SteamGame extends Model
     public function launchUrl(): string
     {
         return "steam://run/{$this->appid}";
+    }
+
+    /**
+     * @return HasMany<SteamGamePlay, $this>
+     */
+    public function plays(): HasMany
+    {
+        return $this->hasMany(SteamGamePlay::class);
     }
 }
