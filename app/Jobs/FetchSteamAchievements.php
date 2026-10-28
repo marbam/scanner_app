@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -115,11 +116,16 @@ class FetchSteamAchievements implements ShouldQueue
      */
     protected function fetchCounts(int $appid, string $key, string $steamId): array
     {
-        $response = Http::timeout(20)->get(self::API_URL, [
-            'key' => $key,
-            'steamid' => $steamId,
-            'appid' => $appid,
-        ]);
+        // Steam occasionally drops a connection mid-run (cURL "SSL connection
+        // timeout"); retry those a couple of times before giving up. HTTP
+        // error responses aren't retried here; they're handled below.
+        $response = Http::timeout(20)
+            ->retry([2000, 5000], when: fn (\Throwable $e) => $e instanceof ConnectionException, throw: false)
+            ->get(self::API_URL, [
+                'key' => $key,
+                'steamid' => $steamId,
+                'appid' => $appid,
+            ]);
 
         $error = (string) $response->json('playerstats.error', '');
 

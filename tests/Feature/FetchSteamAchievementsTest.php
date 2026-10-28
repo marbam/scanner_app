@@ -105,6 +105,33 @@ it('skips a single game Steam errors on and carries on with the rest', function 
         ->and($fine->refresh()->achievements_total)->toBe(2);
 });
 
+it('retries a dropped connection before giving up', function () {
+    $game = SteamGame::factory()->create();
+
+    Http::fake([
+        'api.steampowered.com/*' => Http::sequence()
+            ->pushFailedConnection()
+            ->push(fakeAchievements([true, false, false])),
+    ]);
+
+    expect((new FetchSteamAchievements)->handle())->toBe(1)
+        ->and($game->refresh()->achievements_total)->toBe(3);
+});
+
+it('stops when a connection keeps dropping', function () {
+    SteamGame::factory()->count(2)->create();
+
+    Http::fake([
+        'api.steampowered.com/*' => Http::sequence()
+            ->pushFailedConnection()
+            ->pushFailedConnection()
+            ->pushFailedConnection(),
+    ]);
+
+    expect((new FetchSteamAchievements)->handle())->toBe(0)
+        ->and(FetchSteamAchievements::pendingQuery()->count())->toBe(2);
+});
+
 it('stops when several games in a row hit server errors', function () {
     SteamGame::factory()->count(5)->create();
 
