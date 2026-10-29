@@ -42,7 +42,8 @@ it('imports owned games with playtime and last played date', function () {
 
     Http::assertSent(fn (Request $request) => $request['key'] === 'fake-steam-key'
         && $request['steamid'] === '76561198000000000'
-        && (int) $request['include_appinfo'] === 1);
+        && (int) $request['include_appinfo'] === 1
+        && (int) $request['skip_unvetted_apps'] === 0);
 });
 
 it('updates playtime on re-sync without touching the owner\'s choices or store details', function () {

@@ -51,6 +51,9 @@ class SyncSteamLibrary implements ShouldQueue
             'steamid' => $steamId,
             'include_appinfo' => 1,
             'include_played_free_games' => 1,
+            // Steam hides "unvetted" apps by default, which drops some new or
+            // small releases (e.g. Click & Mine) from the library entirely.
+            'skip_unvetted_apps' => 0,
             'format' => 'json',
         ]);
 
