@@ -66,3 +66,12 @@ Schedule::job(new FetchSteamAchievements(limit: 100))->hourlyAt(45);
 Schedule::command('model:prune', ['--model' => [Alert::class, InterestCheck::class]])
     ->dailyAt('03:00')
     ->timezone('Europe/London');
+
+// Off-site database backups to Cloudflare R2 (config/backup.php). Problems
+// are sent to Pushover by App\Listeners\SendBackupProblemAlert. The health
+// check runs in the morning so an alert doesn't arrive in the middle of the night.
+Schedule::command('app:backup-database')->dailyAt('02:30')->timezone('Europe/London')->withoutOverlapping();
+
+Schedule::command('backup:clean')->dailyAt('03:15')->timezone('Europe/London');
+
+Schedule::command('backup:monitor')->dailyAt('09:30')->timezone('Europe/London');

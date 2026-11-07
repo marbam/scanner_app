@@ -60,6 +60,23 @@ return [
             'report' => false,
         ],
 
+        // Cloudflare R2 (S3-compatible), used for off-site database backups.
+        'r2' => [
+            'driver' => 's3',
+            'key' => env('R2_ACCESS_KEY_ID'),
+            'secret' => env('R2_SECRET_ACCESS_KEY'),
+            'region' => 'auto',
+            'bucket' => env('R2_BUCKET'),
+            'endpoint' => env('R2_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            // Only send checksums when an operation needs them. Newer AWS SDKs
+            // add them to every upload, which S3-compatible services can reject.
+            'request_checksum_calculation' => 'when_required',
+            'response_checksum_validation' => 'when_required',
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*
