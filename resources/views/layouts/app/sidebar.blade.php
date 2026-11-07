@@ -49,6 +49,20 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group :heading="__('Watching')" class="grid">
+                    <flux:sidebar.item icon="tv" :href="route('watching.today')" :current="request()->routeIs('watching.today')" wire:navigate>
+                        {{ __('Today') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="clock" :href="route('watching.backdate')" :current="request()->routeIs('watching.backdate')" wire:navigate>
+                        {{ __('Backdate') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item icon="film" :href="route('watching.history')" :current="request()->routeIs('watching.history')" wire:navigate>
+                        {{ __('History') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group :heading="__('Reminders')" class="grid">
                     <flux:sidebar.item icon="bell" :href="route('reminders.index')" :current="request()->routeIs('reminders.index')" wire:navigate>
                         {{ __('Reminders') }}

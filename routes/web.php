@@ -16,6 +16,9 @@ use App\Livewire\PlanningApplications\Index as PlanningApplicationsIndex;
 use App\Livewire\Reminders\Index as RemindersIndex;
 use App\Livewire\Squares\Board as SquaresBoard;
 use App\Livewire\Twitter\Memories\Index as TwitterMemoriesIndex;
+use App\Livewire\Watching\Backdate as WatchingBackdate;
+use App\Livewire\Watching\History as WatchingHistory;
+use App\Livewire\Watching\Today as WatchingToday;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check() ? redirect()->route('dashboard') : redirect()->route('login'))->name('home');
@@ -40,6 +43,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('habits/summary', HabitsSummary::class)->name('habits.summary');
 
     Route::livewire('habits/activities', HabitsActivities::class)->name('habits.activities');
+
+    Route::livewire('watching/today', WatchingToday::class)->name('watching.today');
+
+    Route::livewire('watching/backdate', WatchingBackdate::class)->name('watching.backdate');
+
+    Route::livewire('watching/history', WatchingHistory::class)->name('watching.history');
 
     Route::livewire('reminders', RemindersIndex::class)->name('reminders.index');
 

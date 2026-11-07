@@ -53,4 +53,8 @@ return [
         'steam_id' => env('STEAM_ID'),
     ],
 
+    'tmdb' => [
+        'key' => env('TMDB_API_KEY'),
+    ],
+
 ];
