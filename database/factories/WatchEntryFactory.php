@@ -18,8 +18,6 @@ class WatchEntryFactory extends Factory
         return [
             'watch_title_id' => WatchTitle::factory(),
             'watched_on' => now('Europe/London')->toDateString(),
-            'season' => null,
-            'episode' => null,
             'location' => WatchEntry::HOME,
         ];
     }

@@ -81,31 +81,12 @@ class Tmdb
 
         $details = $this->summarise($type, is_array($body) ? $body : []);
 
-        $attributes = [
+        $title = WatchTitle::updateOrCreate(['media_type' => $type, 'tmdb_id' => $tmdbId], [
             'title' => $details['title'],
             'year' => $details['year'],
             'poster_path' => $details['poster_path'],
             'runtime' => is_int($body['runtime'] ?? null) ? $body['runtime'] : null,
-            'seasons' => null,
-        ];
-
-        if ($type === WatchTitle::TV) {
-            $seasons = [];
-
-            foreach (is_array($body['seasons'] ?? null) ? $body['seasons'] : [] as $season) {
-                $number = is_array($season) ? ($season['season_number'] ?? null) : null;
-                $count = is_array($season) ? ($season['episode_count'] ?? null) : null;
-
-                // Season 0 is TMDB's "Specials" bucket, not a real season.
-                if (is_int($number) && $number > 0 && is_int($count)) {
-                    $seasons[$number] = $count;
-                }
-            }
-
-            $attributes['seasons'] = $seasons;
-        }
-
-        $title = WatchTitle::updateOrCreate(['media_type' => $type, 'tmdb_id' => $tmdbId], $attributes);
+        ]);
         $title->touch(); // marks when details were last refreshed, even if nothing changed
 
         return $title;

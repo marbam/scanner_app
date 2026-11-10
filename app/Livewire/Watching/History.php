@@ -65,7 +65,7 @@ class History extends Component
             ->whereHas('entries', $inYear)
             ->when($this->type !== 'all', fn (Builder $q) => $q->where('media_type', $this->type))
             ->when(trim($this->search) !== '', fn (Builder $q) => $q->where('title', 'like', '%'.trim($this->search).'%'))
-            ->with(['entries' => fn ($q) => $inYear($q)->orderByDesc('watched_on')->orderByDesc('season')->orderByDesc('episode')])
+            ->with(['entries' => fn ($q) => $inYear($q)->orderByDesc('watched_on')->orderByDesc('id')])
             ->withMax(['entries' => $inYear], 'watched_on')
             ->orderByDesc('entries_max_watched_on')
             ->orderBy('title')
@@ -76,7 +76,7 @@ class History extends Component
      * Totals for the chosen year (or all time). Films count each title once,
      * however many times it was watched.
      *
-     * @return array{films: int, cinema: int, shows: int, episodes: int}
+     * @return array{films: int, cinema: int, shows: int, tv_days: int}
      */
     #[Computed]
     public function stats(): array
@@ -89,7 +89,8 @@ class History extends Component
             'films' => $entries(WatchTitle::MOVIE)->distinct()->count('watch_title_id'),
             'cinema' => $entries(WatchTitle::MOVIE)->where('location', WatchEntry::CINEMA)->count(),
             'shows' => $entries(WatchTitle::TV)->distinct()->count('watch_title_id'),
-            'episodes' => $entries(WatchTitle::TV)->count(),
+            // Days on which any show was logged.
+            'tv_days' => $entries(WatchTitle::TV)->distinct()->count('watched_on'),
         ];
     }
 

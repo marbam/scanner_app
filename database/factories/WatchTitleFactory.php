@@ -21,19 +21,14 @@ class WatchTitleFactory extends Factory
             'year' => fake()->numberBetween(1970, 2026),
             'poster_path' => null,
             'runtime' => 120,
-            'seasons' => null,
         ];
     }
 
-    /**
-     * @param  array<int, int>  $seasons
-     */
-    public function tv(array $seasons = [1 => 8, 2 => 8]): static
+    public function tv(): static
     {
         return $this->state(fn () => [
             'media_type' => WatchTitle::TV,
             'runtime' => null,
-            'seasons' => $seasons,
         ]);
     }
 }

@@ -21,6 +21,10 @@ use Throwable;
  * The daily "what did you watch?" flow: a TV step, then a films step, then
  * a summary. Backdate reuses all of this with a date picker on top.
  *
+ * Shows are one tap: the "Recently watched" list toggles a show on or off for
+ * the day, and picking one from search logs it (at most once per show per
+ * day). Films open a short form to choose Home or Cinema.
+ *
  * @property-read Collection<int, WatchEntry> $entries
  * @property-read Collection<int, WatchTitle> $historyResults
  * @property-read WatchTitle|null $selectedTitle
@@ -30,9 +34,10 @@ class Today extends Component
 {
     public const STEPS = ['tv', 'films', 'done'];
 
-    /** How far back to look for shows/films to offer as one-tap picks. */
-    public const TV_PICK_DAYS = 30;
+    /** How far back the "Recently watched" show list looks. */
+    public const RECENT_SHOW_DAYS = 15;
 
+    /** How far back to look for films to offer again (one started earlier in the week). */
     public const FILM_PICK_DAYS = 14;
 
     public string $date;
@@ -42,11 +47,8 @@ class Today extends Component
 
     public string $search = '';
 
+    /** The film waiting for Home/Cinema to be chosen. */
     public ?int $selectedTitleId = null;
-
-    public int|string|null $season = null;
-
-    public int|string|null $episode = null;
 
     public string $location = WatchEntry::HOME;
 
@@ -135,25 +137,60 @@ class Today extends Component
     }
 
     /**
-     * One-tap suggestions. For TV: shows watched recently, each with the
-     * next episode filled in. For films: films watched in the last couple of
-     * weeks but not yet on this date, for picking up one started earlier.
+     * Every show watched in the last RECENT_SHOW_DAYS days (counted back from
+     * this date, including it), once each, with whether it's logged on this
+     * date. Tapping one toggles it.
      *
-     * @return list<array{title: WatchTitle, season: ?int, episode: ?int, last_watched: CarbonInterface}>
+     * Ordered by when it was last watched *before* this date, so ticking a
+     * show doesn't move it. Shows only watched on this date come first.
+     *
+     * @return list<array{title: WatchTitle, last_watched: ?CarbonInterface, logged: bool}>
+     */
+    #[Computed]
+    public function recentShows(): array
+    {
+        $entries = WatchEntry::with('title')
+            ->whereHas('title', fn ($q) => $q->where('media_type', WatchTitle::TV))
+            ->whereDate('watched_on', '>=', Carbon::parse($this->date)->subDays(self::RECENT_SHOW_DAYS)->toDateString())
+            ->get();
+
+        $shows = [];
+
+        foreach ($entries->groupBy('watch_title_id') as $titleEntries) {
+            $onThisDate = $titleEntries->filter(fn (WatchEntry $e) => $e->watched_on->toDateString() === $this->date);
+            $before = $titleEntries->diff($onThisDate)->sortByDesc(fn (WatchEntry $e) => $e->watched_on->toDateString())->first();
+
+            $shows[] = [
+                'title' => $titleEntries->first()->title,
+                'last_watched' => $before?->watched_on,
+                'logged' => $onThisDate->isNotEmpty(),
+            ];
+        }
+
+        usort($shows, fn (array $a, array $b) => [$b['last_watched'] === null, $b['last_watched']?->toDateString(), $a['title']->title]
+            <=> [$a['last_watched'] === null, $a['last_watched']?->toDateString(), $b['title']->title]);
+
+        return $shows;
+    }
+
+    /**
+     * Films watched in the last couple of weeks but not on this date, for
+     * finishing one started earlier, most recent first.
+     *
+     * @return list<array{title: WatchTitle, last_watched: CarbonInterface}>
      */
     #[Computed]
     public function quickPicks(): array
     {
-        $isTv = $this->mediaType() === WatchTitle::TV;
-        $since = Carbon::parse($this->date)->subDays($isTv ? self::TV_PICK_DAYS : self::FILM_PICK_DAYS)->toDateString();
+        if ($this->mediaType() === WatchTitle::TV) {
+            return [];
+        }
 
         $recent = WatchEntry::with('title')
-            ->whereHas('title', fn ($q) => $q->where('media_type', $this->mediaType()))
-            ->whereDate('watched_on', '>=', $since)
-            ->whereDate('watched_on', $isTv ? '<=' : '<', $this->date)
+            ->whereHas('title', fn ($q) => $q->where('media_type', WatchTitle::MOVIE))
+            ->whereDate('watched_on', '>=', Carbon::parse($this->date)->subDays(self::FILM_PICK_DAYS)->toDateString())
+            ->whereDate('watched_on', '<', $this->date)
             ->orderByDesc('watched_on')
-            ->orderByDesc('season')
-            ->orderByDesc('episode')
             ->orderByDesc('id')
             ->get()
             ->unique('watch_title_id');
@@ -162,20 +199,11 @@ class Today extends Component
         $picks = [];
 
         foreach ($recent as $entry) {
-            $title = $entry->title;
-
-            if (! $isTv && in_array($title->id, $loggedToday, true)) {
+            if (in_array($entry->watch_title_id, $loggedToday, true)) {
                 continue;
             }
 
-            [$season, $episode] = $isTv ? $title->nextEpisodeAfter($entry->season, $entry->episode) : [null, null];
-
-            $picks[] = [
-                'title' => $title,
-                'season' => $season,
-                'episode' => $episode,
-                'last_watched' => $entry->watched_on,
-            ];
+            $picks[] = ['title' => $entry->title, 'last_watched' => $entry->watched_on];
 
             if (count($picks) === 8) {
                 break;
@@ -246,20 +274,13 @@ class Today extends Component
         return $this->selectedTitleId ? WatchTitle::find($this->selectedTitleId) : null;
     }
 
-    public function chooseTitle(int $titleId, ?int $season = null, ?int $episode = null): void
+    public function chooseTitle(int $titleId): void
     {
         $title = WatchTitle::find($titleId);
 
-        if (! $title) {
-            return;
+        if ($title) {
+            $this->choose($title);
         }
-
-        // Shows gain new seasons, so refresh episode counts once a week.
-        if ($title->isTv() && ($title->seasons === null || $title->updated_at?->lt(now()->subWeek()))) {
-            $title = $this->importFromTmdb($title->media_type, $title->tmdb_id) ?? $title;
-        }
-
-        $this->select($title, $season, $episode);
     }
 
     public function chooseTmdb(int $tmdbId): void
@@ -268,23 +289,43 @@ class Today extends Component
             ?? $this->importFromTmdb($this->mediaType(), $tmdbId);
 
         if ($title) {
-            $this->select($title);
+            $this->choose($title);
         } else {
             Flux::toast(variant: 'danger', text: __('Couldn\'t load that from TMDB. Try again in a moment.'));
         }
     }
 
-    public function add(): void
+    /** Ticks or unticks a show in the "Recently watched" list for this date. */
+    public function toggleShow(int $titleId): void
     {
-        $title = $this->selectedTitle;
+        $title = WatchTitle::where('media_type', WatchTitle::TV)->find($titleId);
 
         if (! $title) {
             return;
         }
 
+        $this->date = $this->normalisedDate($this->date);
+        $logged = $title->entries()->whereDate('watched_on', $this->date);
+
+        if ($logged->exists()) {
+            $logged->delete();
+        } else {
+            $this->logShow($title);
+        }
+
+        $this->clearComputed();
+    }
+
+    /** Saves the selected film with the chosen Home/Cinema location. */
+    public function add(): void
+    {
+        $title = $this->selectedTitle;
+
+        if (! $title || $title->isTv()) {
+            return;
+        }
+
         $this->validate([
-            'season' => ['nullable', 'integer', 'min:0', 'max:999'],
-            'episode' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'location' => ['required', 'in:'.WatchEntry::HOME.','.WatchEntry::CINEMA],
         ]);
 
@@ -293,9 +334,7 @@ class Today extends Component
         WatchEntry::create([
             'watch_title_id' => $title->id,
             'watched_on' => $this->date,
-            'season' => $title->isTv() ? $this->asInt($this->season) : null,
-            'episode' => $title->isTv() ? $this->asInt($this->episode) : null,
-            'location' => $title->isTv() ? null : $this->location,
+            'location' => $this->location,
         ]);
 
         $this->search = '';
@@ -312,8 +351,6 @@ class Today extends Component
     public function cancelSelection(): void
     {
         $this->selectedTitleId = null;
-        $this->season = null;
-        $this->episode = null;
         $this->location = WatchEntry::HOME;
         $this->resetValidation();
         unset($this->selectedTitle);
@@ -329,26 +366,34 @@ class Today extends Component
         return view('livewire.watching.today');
     }
 
-    protected function select(WatchTitle $title, ?int $season = null, ?int $episode = null): void
+    /** Shows are logged straight away; films wait for Home/Cinema. */
+    protected function choose(WatchTitle $title): void
     {
-        $this->selectedTitleId = $title->id;
-        $this->location = WatchEntry::HOME;
+        if (! $title->isTv()) {
+            $this->selectedTitleId = $title->id;
+            $this->location = WatchEntry::HOME;
+            unset($this->selectedTitle);
 
-        if ($title->isTv() && $season === null) {
-            $last = $title->entries()
-                ->whereDate('watched_on', '<=', $this->date)
-                ->orderByDesc('watched_on')
-                ->orderByDesc('season')
-                ->orderByDesc('episode')
-                ->orderByDesc('id')
-                ->first();
-
-            [$season, $episode] = $title->nextEpisodeAfter($last?->season, $last?->episode);
+            return;
         }
 
-        $this->season = $title->isTv() ? $season : null;
-        $this->episode = $title->isTv() ? $episode : null;
-        unset($this->selectedTitle);
+        $this->date = $this->normalisedDate($this->date);
+        $this->logShow($title);
+
+        $this->search = '';
+        $this->clearComputed();
+    }
+
+    /** Logs a show on this date, unless it's already logged (once per day is all that's tracked). */
+    protected function logShow(WatchTitle $title): void
+    {
+        if (! $title->entries()->whereDate('watched_on', $this->date)->exists()) {
+            WatchEntry::create([
+                'watch_title_id' => $title->id,
+                'watched_on' => $this->date,
+                'location' => null,
+            ]);
+        }
     }
 
     protected function importFromTmdb(string $type, int $tmdbId): ?WatchTitle
@@ -368,11 +413,6 @@ class Today extends Component
 
     protected function clearComputed(): void
     {
-        unset($this->entries, $this->quickPicks, $this->historyResults, $this->tmdbResults, $this->selectedTitle);
-    }
-
-    private function asInt(int|string|null $value): ?int
-    {
-        return $value === null || $value === '' ? null : (int) $value;
+        unset($this->entries, $this->recentShows, $this->quickPicks, $this->historyResults, $this->tmdbResults, $this->selectedTitle);
     }
 }

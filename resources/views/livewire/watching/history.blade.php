@@ -9,7 +9,7 @@
             __('Films') => $this->stats['films'],
             __('Cinema trips') => $this->stats['cinema'],
             __('Shows') => $this->stats['shows'],
-            __('Episodes') => $this->stats['episodes'],
+            __('Days with TV') => $this->stats['tv_days'],
         ] as $label => $value)
             <div class="rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="text-2xl font-semibold text-zinc-900 dark:text-white">{{ number_format($value) }}</div>
@@ -53,14 +53,11 @@
                         @foreach ($title->entries->groupBy(fn ($e) => $e->watched_on->toDateString()) as $day => $dayEntries)
                             <div wire:key="day-{{ $title->id }}-{{ $day }}">
                                 <span class="text-zinc-500">{{ \Illuminate\Support\Carbon::parse($day)->format('D j M Y') }}</span>
-                                @if ($title->isTv())
-                                    @php $labels = $dayEntries->map->episodeLabel()->filter()->reverse()->implode(', '); @endphp
-                                    @if ($labels !== '') · {{ $labels }} @endif
-                                @else
+                                @unless ($title->isTv())
                                     @foreach ($dayEntries as $entry)
                                         · {{ $entry->location === \App\Models\WatchEntry::CINEMA ? __('Cinema') : __('Home') }}
                                     @endforeach
-                                @endif
+                                @endunless
                             </div>
                         @endforeach
                     </div>

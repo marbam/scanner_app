@@ -20,18 +20,13 @@ test('the pages load', function () {
     $this->get(route('watching.history'))->assertOk();
 });
 
-test('searching TMDB and adding a new show logs the first episode for today', function () {
+test('picking a new show from TMDB search logs it for today in one tap', function () {
     Http::fake([
         'api.themoviedb.org/3/search/tv*' => Http::response(['results' => [
             ['id' => 1396, 'name' => 'Breaking Bad', 'first_air_date' => '2008-01-20', 'poster_path' => '/bb.jpg'],
         ]]),
         'api.themoviedb.org/3/tv/1396*' => Http::response([
             'id' => 1396, 'name' => 'Breaking Bad', 'first_air_date' => '2008-01-20', 'poster_path' => '/bb.jpg',
-            'seasons' => [
-                ['season_number' => 0, 'episode_count' => 9],
-                ['season_number' => 1, 'episode_count' => 7],
-                ['season_number' => 2, 'episode_count' => 13],
-            ],
         ]),
     ]);
 
@@ -39,38 +34,87 @@ test('searching TMDB and adding a new show logs the first episode for today', fu
         ->set('search', 'breaking')
         ->assertSee('Breaking Bad')
         ->call('chooseTmdb', 1396)
-        ->assertSet('season', 1)
-        ->assertSet('episode', 1)
-        ->call('add');
+        ->assertSet('selectedTitleId', null) // no form to fill in
+        ->assertSet('search', '');
 
     $title = WatchTitle::sole();
     expect($title->media_type)->toBe(WatchTitle::TV)
-        ->and($title->year)->toBe(2008)
-        ->and($title->seasons)->toBe([1 => 7, 2 => 13]);
+        ->and($title->year)->toBe(2008);
 
     $entry = WatchEntry::sole();
     expect($entry->watched_on->toDateString())->toBe('2026-11-07')
-        ->and($entry->season)->toBe(1)
-        ->and($entry->episode)->toBe(1)
         ->and($entry->location)->toBeNull();
 
     Http::assertSent(fn ($request) => $request['api_key'] === 'test-key');
 });
 
-test('a recently watched show is offered with the next episode, rolling into the next season', function () {
-    $show = WatchTitle::factory()->tv([1 => 7, 2 => 13])->create(['title' => 'Breaking Bad']);
-    WatchEntry::factory()->for($show, 'title')->create(['watched_on' => '2026-11-05', 'season' => 1, 'episode' => 7, 'location' => null]);
+test('recently watched shows can be ticked and unticked for the day', function () {
+    $show = WatchTitle::factory()->tv()->create(['title' => 'Slow Horses']);
+    WatchEntry::factory()->for($show, 'title')->create(['watched_on' => '2026-11-05', 'location' => null]);
 
-    $component = Livewire::test(Today::class)->assertSee('Next: S2 E1');
+    $component = Livewire::test(Today::class)->assertSee('Last watched Thu 5 Nov');
 
-    $component->call('chooseTitle', $show->id, 2, 1)->call('add');
+    $logged = fn () => array_column($component->get('recentShows'), 'logged');
+    $loggedToday = fn () => WatchEntry::whereDate('watched_on', '2026-11-07')->count();
 
-    expect(WatchEntry::latest('id')->first())
-        ->season->toBe(2)
-        ->episode->toBe(1);
+    expect($logged())->toBe([false]);
 
-    // After logging S2E1 the pick moves on to S2E2.
-    $component->assertSee('Next: S2 E2');
+    $component->call('toggleShow', $show->id);
+    expect($loggedToday())->toBe(1)
+        ->and($logged())->toBe([true]); // still listed, now ticked
+
+    $component->call('toggleShow', $show->id);
+    expect($loggedToday())->toBe(0)
+        ->and($logged())->toBe([false])
+        ->and(WatchEntry::count())->toBe(1); // the earlier day is untouched
+});
+
+test('the recent list covers the last 15 days, once per show, in a stable order', function () {
+    $older = WatchTitle::factory()->tv()->create(['title' => 'Andor']);
+    $recent = WatchTitle::factory()->tv()->create(['title' => 'Slow Horses']);
+    $tooOld = WatchTitle::factory()->tv()->create(['title' => 'Taskmaster']);
+    $film = WatchTitle::factory()->create(['title' => 'Dune']);
+
+    foreach (['2026-11-01', '2026-11-03'] as $day) {
+        WatchEntry::factory()->for($older, 'title')->create(['watched_on' => $day, 'location' => null]);
+    }
+    WatchEntry::factory()->for($recent, 'title')->create(['watched_on' => '2026-11-06', 'location' => null]);
+    WatchEntry::factory()->for($tooOld, 'title')->create(['watched_on' => '2026-10-20', 'location' => null]);
+    WatchEntry::factory()->for($film, 'title')->create(['watched_on' => '2026-11-06']);
+
+    $component = Livewire::test(Today::class);
+    $titles = fn () => array_map(fn ($s) => $s['title']->title, $component->get('recentShows'));
+
+    expect($titles())->toBe(['Slow Horses', 'Andor']);
+
+    // Ticking the older show today doesn't move it to the top.
+    $component->call('toggleShow', $older->id);
+    expect($titles())->toBe(['Slow Horses', 'Andor']);
+});
+
+test('a show added from search appears ticked at the top of the recent list', function () {
+    $new = WatchTitle::factory()->tv()->create(['title' => 'Brand New Show']);
+    $recent = WatchTitle::factory()->tv()->create(['title' => 'Slow Horses']);
+    WatchEntry::factory()->for($recent, 'title')->create(['watched_on' => '2026-11-06', 'location' => null]);
+
+    $component = Livewire::test(Today::class)->call('chooseTitle', $new->id);
+
+    $shows = $component->get('recentShows');
+    expect($shows[0]['title']->id)->toBe($new->id)
+        ->and($shows[0]['logged'])->toBeTrue()
+        ->and($shows[0]['last_watched'])->toBeNull();
+
+    $component->assertSee('First time');
+});
+
+test('logging the same show twice on one day only records it once', function () {
+    $show = WatchTitle::factory()->tv()->create();
+
+    Livewire::test(Today::class)
+        ->call('chooseTitle', $show->id)
+        ->call('chooseTitle', $show->id);
+
+    expect(WatchEntry::count())->toBe(1);
 });
 
 test('films can be logged as a cinema trip', function () {
@@ -84,8 +128,7 @@ test('films can be logged as a cinema trip', function () {
         ->assertSee('Dune: Part Two');
 
     expect(WatchEntry::sole())
-        ->location->toBe(WatchEntry::CINEMA)
-        ->season->toBeNull();
+        ->location->toBe(WatchEntry::CINEMA);
 });
 
 test('a film started earlier in the week is offered again and shows up in history search first', function () {

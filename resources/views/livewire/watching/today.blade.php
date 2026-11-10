@@ -50,19 +50,19 @@
     @if ($step !== 'done')
         <div>
             <flux:heading size="lg">{{ $isTv ? __('Any TV shows?') : __('Any films?') }}</flux:heading>
+            @if ($isTv)
+                <flux:text class="text-sm">{{ __('Tap the shows you watched. Tap again to untick.') }}</flux:text>
+            @endif
         </div>
 
-        {{-- Already logged for this step --}}
-        @if ($stepEntries->isNotEmpty())
+        {{-- Films already logged on this date (shows are ticked in "Recently watched" instead) --}}
+        @if (! $isTv && $stepEntries->isNotEmpty())
             <div class="flex flex-col gap-2">
                 @foreach ($stepEntries as $entry)
                     <div wire:key="entry-{{ $entry->id }}" class="flex items-center justify-between gap-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 dark:border-emerald-800 dark:bg-emerald-950/40">
                         <div class="flex min-w-0 items-center gap-3">
                             <flux:icon.check-circle class="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                             <span class="truncate font-medium text-zinc-800 dark:text-zinc-100">{{ $entry->title->title }}</span>
-                            @if ($entry->episodeLabel())
-                                <flux:badge size="sm" color="zinc">{{ $entry->episodeLabel() }}</flux:badge>
-                            @endif
                             @if ($entry->location === \App\Models\WatchEntry::CINEMA)
                                 <flux:badge size="sm" color="amber">{{ __('Cinema') }}</flux:badge>
                             @endif
@@ -74,10 +74,10 @@
         @endif
 
         @if ($selected)
-            {{-- Confirm the selected title --}}
+            {{-- Films only: choose Home or Cinema before adding --}}
             <form wire:submit="add" class="flex flex-col gap-4 rounded-lg border border-zinc-300 bg-white p-4 dark:border-zinc-600 dark:bg-zinc-900">
                 <div class="flex items-center gap-3">
-                    @include('livewire.watching.partials.poster', ['url' => $selected->posterUrl(), 'tv' => $selected->isTv()])
+                    @include('livewire.watching.partials.poster', ['url' => $selected->posterUrl(), 'tv' => false])
                     <div>
                         <div class="font-semibold text-zinc-900 dark:text-white">{{ $selected->title }}</div>
                         @if ($selected->year)
@@ -86,41 +86,29 @@
                     </div>
                 </div>
 
-                @if ($selected->isTv())
-                    <div class="grid grid-cols-2 gap-3">
-                        <flux:input type="number" min="0" inputmode="numeric" wire:model.live.debounce.300ms="season" :label="__('Season')" />
-                        <flux:input type="number" min="0" inputmode="numeric" wire:model="episode" :label="__('Episode')" />
-                    </div>
-                    @if (is_numeric($season) && $selected->episodeCount((int) $season))
-                        <flux:text class="-mt-2 text-sm">
-                            {{ __('Season :season has :count episodes.', ['season' => (int) $season, 'count' => $selected->episodeCount((int) $season)]) }}
-                        </flux:text>
-                    @endif
-                @else
-                    <div class="flex flex-col gap-2">
-                        <flux:text class="text-sm font-medium">{{ __('Where did you watch it?') }}</flux:text>
+                <div class="flex flex-col gap-2">
+                    <flux:text class="text-sm font-medium">{{ __('Where did you watch it?') }}</flux:text>
 
-                        <div class="grid grid-cols-2 gap-2">
-                            @foreach ([\App\Models\WatchEntry::HOME => [__('Home'), 'home'], \App\Models\WatchEntry::CINEMA => [__('Cinema'), 'film']] as $value => [$label, $icon])
-                                @php $isSelected = $location === $value; @endphp
-                                <button
-                                    type="button"
-                                    wire:click="$set('location', '{{ $value }}')"
-                                    wire:key="location-{{ $value }}"
-                                    aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
-                                    @class([
-                                        'flex items-center justify-center gap-2 rounded-lg border-2 px-3 py-3 font-semibold transition',
-                                        'border-amber-400 bg-amber-500 text-zinc-950 shadow-md' => $isSelected,
-                                        'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-500 dark:hover:text-zinc-200' => ! $isSelected,
-                                    ])
-                                >
-                                    <flux:icon :name="$isSelected ? 'check-circle' : $icon" variant="mini" class="shrink-0" />
-                                    <span>{{ $label }}</span>
-                                </button>
-                            @endforeach
-                        </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach ([\App\Models\WatchEntry::HOME => [__('Home'), 'home'], \App\Models\WatchEntry::CINEMA => [__('Cinema'), 'film']] as $value => [$label, $icon])
+                            @php $isSelected = $location === $value; @endphp
+                            <button
+                                type="button"
+                                wire:click="$set('location', '{{ $value }}')"
+                                wire:key="location-{{ $value }}"
+                                aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
+                                @class([
+                                    'flex items-center justify-center gap-2 rounded-lg border-2 px-3 py-3 font-semibold transition',
+                                    'border-amber-400 bg-amber-500 text-zinc-950 shadow-md' => $isSelected,
+                                    'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-500 dark:hover:text-zinc-200' => ! $isSelected,
+                                ])
+                            >
+                                <flux:icon :name="$isSelected ? 'check-circle' : $icon" variant="mini" class="shrink-0" />
+                                <span>{{ $label }}</span>
+                            </button>
+                        @endforeach
                     </div>
-                @endif
+                </div>
 
                 <div class="flex gap-2">
                     <flux:button type="submit" variant="primary" class="flex-1">{{ __('Add') }}</flux:button>
@@ -128,28 +116,57 @@
                 </div>
             </form>
         @else
-            {{-- One-tap picks from recent history --}}
+            {{-- Shows from the last couple of weeks, ticked if logged on this date --}}
+            @if ($isTv && $this->recentShows !== [])
+                <div class="flex flex-col gap-2">
+                    <flux:text class="text-xs font-medium uppercase tracking-wide">{{ __('Recently watched') }}</flux:text>
+
+                    @foreach ($this->recentShows as $show)
+                        <button
+                            type="button"
+                            wire:key="show-{{ $show['title']->id }}"
+                            wire:click="toggleShow({{ $show['title']->id }})"
+                            aria-pressed="{{ $show['logged'] ? 'true' : 'false' }}"
+                            @class([
+                                'flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition',
+                                'border-emerald-400 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/40' => $show['logged'],
+                                'border-zinc-200 bg-white hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-500' => ! $show['logged'],
+                            ])
+                        >
+                            @include('livewire.watching.partials.poster', ['url' => $show['title']->posterUrl(), 'tv' => true])
+                            <div class="min-w-0 flex-1">
+                                <div class="truncate font-medium text-zinc-800 dark:text-zinc-100">{{ $show['title']->title }}</div>
+                                <div class="text-sm text-zinc-500">
+                                    {{ $show['last_watched'] ? __('Last watched :when', ['when' => $show['last_watched']->format('D j M')]) : __('First time') }}
+                                </div>
+                            </div>
+                            @if ($show['logged'])
+                                <flux:icon.check-circle variant="solid" class="size-7 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            @else
+                                <span class="size-6 shrink-0 rounded-full border-2 border-zinc-300 dark:border-zinc-600"></span>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+            @endif
+
+            {{-- Films started recently, to log again --}}
             @if ($this->quickPicks !== [])
                 <div class="flex flex-col gap-2">
-                    <flux:text class="text-xs font-medium uppercase tracking-wide">
-                        {{ $isTv ? __('Carry on watching') : __('Watched recently') }}
-                    </flux:text>
+                    <flux:text class="text-xs font-medium uppercase tracking-wide">{{ __('Watched recently') }}</flux:text>
 
                     @foreach ($this->quickPicks as $pick)
                         <button
                             type="button"
                             wire:key="pick-{{ $pick['title']->id }}"
-                            wire:click="chooseTitle({{ $pick['title']->id }}, {{ $pick['season'] ?? 'null' }}, {{ $pick['episode'] ?? 'null' }})"
+                            wire:click="chooseTitle({{ $pick['title']->id }})"
                             class="flex w-full items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-500"
                         >
                             @include('livewire.watching.partials.poster', ['url' => $pick['title']->posterUrl(), 'tv' => $isTv])
                             <div class="min-w-0 flex-1">
                                 <div class="truncate font-medium text-zinc-800 dark:text-zinc-100">{{ $pick['title']->title }}</div>
                                 <div class="text-sm text-zinc-500">
-                                    @if ($isTv)
-                                        {{ __('Next: S:season E:episode', ['season' => $pick['season'], 'episode' => $pick['episode']]) }} ·
-                                    @endif
-                                    {{ __('last watched :when', ['when' => $pick['last_watched']->isSameDay($day) ? __('today') : $pick['last_watched']->format('D j M')]) }}
+                                    {{ __('Last watched :when', ['when' => $pick['last_watched']->format('D j M')]) }}
                                 </div>
                             </div>
                             <flux:icon.plus class="size-5 text-zinc-400" />
@@ -248,9 +265,6 @@
                                 <div wire:key="summary-{{ $entry->id }}" class="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900">
                                     @include('livewire.watching.partials.poster', ['url' => $entry->title->posterUrl(), 'tv' => $entry->title->isTv()])
                                     <span class="min-w-0 flex-1 truncate font-medium text-zinc-800 dark:text-zinc-100">{{ $entry->title->title }}</span>
-                                    @if ($entry->episodeLabel())
-                                        <flux:badge size="sm" color="zinc">{{ $entry->episodeLabel() }}</flux:badge>
-                                    @endif
                                     @if ($entry->location === \App\Models\WatchEntry::CINEMA)
                                         <flux:badge size="sm" color="amber">{{ __('Cinema') }}</flux:badge>
                                     @elseif ($entry->location === \App\Models\WatchEntry::HOME)
