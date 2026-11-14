@@ -3,6 +3,7 @@
 use App\Http\Controllers\PushoverTestController;
 use App\Livewire\Amoeba\Board as AmoebaBoard;
 use App\Livewire\Dashboard\Index as DashboardIndex;
+use App\Livewire\Day\Index as DayIndex;
 use App\Livewire\Facebook\Memories\Index as FacebookMemoriesIndex;
 use App\Livewire\Facebook\Posts\Index as FacebookPostsIndex;
 use App\Livewire\Games\Index as GamesIndex;
@@ -25,6 +26,8 @@ Route::get('/', fn () => auth()->check() ? redirect()->route('dashboard') : redi
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', DashboardIndex::class)->name('dashboard');
+
+    Route::livewire('day', DayIndex::class)->name('day');
 
     Route::livewire('scans', InterestsIndex::class)->name('scans.index');
 

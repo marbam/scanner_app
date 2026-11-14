@@ -4,6 +4,10 @@
         <flux:subheading>{{ __('What happened on this day, and what\'s new in the last 24 hours.') }}</flux:subheading>
     </div>
 
+    <flux:button :href="route('day')" wire:navigate icon="sun" variant="primary" class="self-start">
+        {{ __('Log your day') }}
+    </flux:button>
+
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div class="flex flex-col gap-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
             <div class="flex items-center justify-between gap-4">

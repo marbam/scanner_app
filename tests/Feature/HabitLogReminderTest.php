@@ -7,8 +7,8 @@ test('sends via pushover', function () {
     expect((new HabitLogReminder)->via(null))->toBe([PushoverChannel::class]);
 });
 
-test('links to the habit log page', function () {
+test('links to the Your Day page', function () {
     $message = (new HabitLogReminder)->toPushover(null);
 
-    expect($message->toArray()['url'])->toBe(route('habits.log'));
+    expect($message->toArray()['url'])->toBe(route('day'));
 });

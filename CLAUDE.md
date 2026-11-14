@@ -108,7 +108,7 @@ The app has grown into a general personal dashboard beyond the Interest/Interest
 
 ### Habit tracker (`habits/*`)
 
-`App\Models\HabitActivity` (a trackable habit — name, colour, weight, `value_type`, sort order, optional `archived_at`) has many `App\Models\HabitEntry` (one row per activity per date, `completed` boolean + optional numeric `value`). Four Livewire pages: `habits/log` (log today's entries), `habits/tracker`, `habits/summary`, `habits/activities` (manage the activity list). `App\Jobs\SendHabitLogReminder` runs daily at 20:00 UK time and sends a Pushover reminder unless a `HabitEntry` already exists for today — i.e. it's skipped once today's habits have been logged.
+`App\Models\HabitActivity` (a trackable habit — name, colour, weight, `value_type`, sort order, optional `archived_at`) has many `App\Models\HabitEntry` (one row per activity per date, `completed` boolean + optional numeric `value`). Four Livewire pages: `habits/log` (log today's entries), `habits/tracker`, `habits/summary`, `habits/activities` (manage the activity list). `App\Jobs\SendHabitLogReminder` runs daily at 20:00 UK time and sends a Pushover reminder (linking to Your Day) unless a `HabitEntry` already exists for today — i.e. it's skipped once today's habits have been logged.
 
 ### Watching log (`watching/*`)
 
@@ -121,7 +121,11 @@ Three Livewire pages, mobile-first like the dashboard:
 - `watching/backdate` (`App\Livewire\Watching\Backdate`): extends `Today` with `isBackdating()` returning true, a date picker defaulting to yesterday, and future dates refused. Both use `livewire/watching/today.blade.php` via `Today::render()`.
 - `watching/history` (`App\Livewire\Watching\History`): titles searchable and filterable by type and year, each listing its viewing dates, with totals for films (distinct), cinema trips, shows (distinct) and days with any TV.
 
-The TV and film steps are meant to later join the habit log on a single daily screen.
+The step body and summary are partials (`watching/partials/step.blade.php`, `summary.blade.php`, `step-tabs.blade.php`), so Your Day (below) reuses them. In the step, search sits above the "Recently watched" / "Watched recently" lists.
+
+### Your day (`day`)
+
+`App\Livewire\Day\Index` (view `livewire/day.blade.php`) is the single daily screen: Habits → TV → Films → Done, with a summary of all of it at the end. It extends `Watching\Today` (so it's always today in UK time) and overrides `STEPS`. `Today` uses `static::STEPS` and `nextStep()` so subclasses can add steps. The habits step uses the `App\Livewire\Concerns\LogsHabits` trait and `habits/partials/list.blade.php`, shared with `habits/log`. The 8pm habit reminder links here. Book tracking is planned as another step: add it to `STEPS`, add a branch in the view, and add it to the summary.
 
 ### What to play (`games`)
 

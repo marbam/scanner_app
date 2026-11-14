@@ -32,6 +32,7 @@ use Throwable;
 #[Title('Watched today')]
 class Today extends Component
 {
+    /** @var list<string> */
     public const STEPS = ['tv', 'films', 'done'];
 
     /** How far back the "Recently watched" show list looks. */
@@ -56,8 +57,8 @@ class Today extends Component
     {
         $this->date = self::today();
 
-        if (! in_array($this->step, self::STEPS, true)) {
-            $this->step = 'tv';
+        if (! in_array($this->step, static::STEPS, true)) {
+            $this->step = static::STEPS[0];
         }
     }
 
@@ -73,11 +74,19 @@ class Today extends Component
 
     public function goTo(string $step): void
     {
-        if (in_array($step, self::STEPS, true)) {
+        if (in_array($step, static::STEPS, true)) {
             $this->step = $step;
             $this->search = '';
             $this->cancelSelection();
         }
+    }
+
+    /** The step after the current one, or null on the last step. */
+    public function nextStep(): ?string
+    {
+        $index = array_search($this->step, static::STEPS, true);
+
+        return $index === false ? null : (static::STEPS[$index + 1] ?? null);
     }
 
     public function previousDay(): void

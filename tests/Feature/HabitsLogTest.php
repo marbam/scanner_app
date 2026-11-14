@@ -17,7 +17,7 @@ test('shows active activities and lets today\'s date be toggled complete', funct
     Livewire::test(Log::class)
         ->assertSee('Reading')
         ->assertDontSee('Retired habit')
-        ->call('toggle', $reading->id);
+        ->call('toggleHabit', $reading->id);
 
     expect(HabitEntry::where('habit_activity_id', $reading->id)->first()->completed)->toBeTrue();
 });
@@ -26,8 +26,8 @@ test('toggling twice clears the entry back to not completed', function () {
     $reading = HabitActivity::factory()->create();
 
     Livewire::test(Log::class)
-        ->call('toggle', $reading->id)
-        ->call('toggle', $reading->id);
+        ->call('toggleHabit', $reading->id)
+        ->call('toggleHabit', $reading->id);
 
     expect(HabitEntry::where('habit_activity_id', $reading->id)->first()->completed)->toBeFalse();
 });

@@ -20,7 +20,7 @@ class HabitLogReminder extends Notification
     {
         return PushoverMessage::create("Don't forget to log today's habits.")
             ->title('Habit tracker')
-            ->url(route('habits.log'), 'Log habits')
+            ->url(route('day'), 'Log your day')
             ->priority(0);
     }
 }

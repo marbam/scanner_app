@@ -16,6 +16,10 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="sun" :href="route('day')" :current="request()->routeIs('day')" wire:navigate>
+                        {{ __('Your day') }}
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="document-magnifying-glass" :href="route('scans.index')" :current="request()->routeIs('scans.index')" wire:navigate>
                         {{ __('Scans') }}
                     </flux:sidebar.item>
