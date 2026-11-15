@@ -20,6 +20,10 @@
                         {{ __('Your day') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="clock" :href="route('day.backdate')" :current="request()->routeIs('day.backdate')" wire:navigate>
+                        {{ __('Backdate your day') }}
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="document-magnifying-glass" :href="route('scans.index')" :current="request()->routeIs('scans.index')" wire:navigate>
                         {{ __('Scans') }}
                     </flux:sidebar.item>

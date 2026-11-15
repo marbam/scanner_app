@@ -114,7 +114,7 @@
                     type="button"
                     wire:click="toggleFinished({{ $item['book']->id }})"
                     aria-pressed="{{ $item['finished'] ? 'true' : 'false' }}"
-                    title="{{ $item['finished'] ? __('Finished today. Tap to undo.') : __('Mark as finished today') }}"
+                    title="{{ $item['finished'] ? __('Finished on this day. Tap to undo.') : __('Mark as finished on this day') }}"
                     @class([
                         'flex w-18 shrink-0 flex-col items-center justify-center gap-1 rounded-lg border px-2 text-xs font-medium transition',
                         'border-amber-400 bg-amber-500 text-zinc-950' => $item['finished'],

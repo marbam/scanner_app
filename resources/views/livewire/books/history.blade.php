@@ -4,6 +4,11 @@
         <flux:subheading>{{ __('Every book you\'ve logged, most recently read first.') }}</flux:subheading>
     </div>
 
+    <div class="flex flex-wrap gap-2">
+        <flux:button :href="route('day', ['step' => 'books'])" wire:navigate size="sm" icon="book-open">{{ __('Log today\'s reading') }}</flux:button>
+        <flux:button :href="route('day.backdate', ['step' => 'books'])" wire:navigate size="sm" variant="ghost" icon="clock">{{ __('Log an earlier day') }}</flux:button>
+    </div>
+
     <div class="grid grid-cols-3 gap-3">
         @foreach ([
             __('Books') => $this->stats['books'],

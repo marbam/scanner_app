@@ -4,6 +4,7 @@ use App\Http\Controllers\PushoverTestController;
 use App\Livewire\Amoeba\Board as AmoebaBoard;
 use App\Livewire\Books\History as BooksHistory;
 use App\Livewire\Dashboard\Index as DashboardIndex;
+use App\Livewire\Day\Backdate as DayBackdate;
 use App\Livewire\Day\Index as DayIndex;
 use App\Livewire\Facebook\Memories\Index as FacebookMemoriesIndex;
 use App\Livewire\Facebook\Posts\Index as FacebookPostsIndex;
@@ -29,6 +30,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', DashboardIndex::class)->name('dashboard');
 
     Route::livewire('day', DayIndex::class)->name('day');
+
+    Route::livewire('day/backdate', DayBackdate::class)->name('day.backdate');
 
     Route::livewire('books/history', BooksHistory::class)->name('books.history');
 

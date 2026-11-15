@@ -3,13 +3,23 @@
     $filmCount = $this->entries->count() - $tvCount;
     $habitsDone = $this->habitsCompletedCount();
     $habitsTotal = $this->habitActivities->count();
+    $backdating = $this->isBackdating();
+    $isToday = $date === \App\Livewire\Watching\Today::today();
 @endphp
 
 <div class="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col gap-6">
     <div>
-        <flux:heading size="xl">{{ __('Your day') }}</flux:heading>
-        <flux:subheading>{{ __('Today') }} {{ \Illuminate\Support\Carbon::parse($date)->format('l j F Y') }}</flux:subheading>
+        <flux:heading size="xl">{{ $backdating ? __('Backdate your day') : __('Your day') }}</flux:heading>
+        <flux:subheading>{{ $isToday ? __('Today') : '' }} {{ \Illuminate\Support\Carbon::parse($date)->format('l j F Y') }}</flux:subheading>
     </div>
+
+    @if ($backdating)
+        <div class="flex items-center gap-3">
+            <flux:button icon="chevron-left" wire:click="previousDay" size="sm" :aria-label="__('Day before')" />
+            <flux:input type="date" wire:model.live="date" :max="\App\Livewire\Watching\Today::today()" class="max-w-xs" />
+            <flux:button icon="chevron-right" wire:click="nextDay" size="sm" :disabled="$isToday" :aria-label="__('Day after')" />
+        </div>
+    @endif
 
     @include('livewire.watching.partials.step-tabs', ['tabs' => [
         'habits' => [__('Habits'), 'calendar-days', $habitsTotal > 0 ? $habitsDone.'/'.$habitsTotal : null],
@@ -63,7 +73,7 @@
             </div>
 
             <div class="flex flex-col gap-4">
-                @include('livewire.watching.partials.summary', ['emptyText' => __('Nothing watched today.')])
+                @include('livewire.watching.partials.summary', ['emptyText' => $isToday ? __('Nothing watched today.') : __('Nothing watched that day.')])
             </div>
 
             <div class="flex flex-col gap-2">
@@ -84,7 +94,7 @@
                     </div>
                 @empty
                     <div class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500 dark:border-zinc-700">
-                        {{ __('No reading today.') }}
+                        {{ $isToday ? __('No reading today.') : __('No reading that day.') }}
                     </div>
                 @endforelse
             </div>
@@ -93,6 +103,11 @@
                 <flux:button :href="route('habits.tracker')" wire:navigate icon="squares-2x2">{{ __('Habit tracker') }}</flux:button>
                 <flux:button :href="route('watching.history')" wire:navigate icon="film">{{ __('Watch history') }}</flux:button>
                 <flux:button :href="route('books.history')" wire:navigate icon="book-open">{{ __('Reading history') }}</flux:button>
+                @if ($backdating)
+                    <flux:button wire:click="previousDay" variant="ghost" icon="chevron-left">{{ __('Day before') }}</flux:button>
+                @else
+                    <flux:button :href="route('day.backdate')" wire:navigate variant="ghost" icon="clock">{{ __('Log an earlier day') }}</flux:button>
+                @endif
             </div>
         </div>
     @endif
