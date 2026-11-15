@@ -28,6 +28,10 @@
                         {{ __('Highlights') }}
                     </flux:sidebar.item>
 
+                    <flux:sidebar.item icon="chart-bar" :href="route('review')" :current="request()->routeIs('review')" wire:navigate>
+                        {{ __('Year in review') }}
+                    </flux:sidebar.item>
+
                     <flux:sidebar.item icon="document-magnifying-glass" :href="route('scans.index')" :current="request()->routeIs('scans.index')" wire:navigate>
                         {{ __('Scans') }}
                     </flux:sidebar.item>

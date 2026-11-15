@@ -134,6 +134,14 @@ Finishing: `books.finished_on` is the day a book was (most recently) finished, s
 
 `books/history` (`App\Livewire\Books\History`, view `livewire/books/history.blade.php`): every book, most recently read first, with Reading/Finished status, the number of days read and the first–last date span. It's searchable by title or author and filterable by status and year, with totals for books, finished and days reading.
 
+### Year in review (`review`)
+
+`App\Livewire\Review\Index` (view `livewire/review.blade.php`) summarises TV, films, Steam games, books and habits over a `#[Url]`-bound `period`: `ytd` (1 January to today) or `365` (the last 365 days, including today), in UK dates. The date range is the `range` computed property, named so it doesn't clash with `$period`.
+- **Days of data:** each section shows how many days of the period it has data for, via `coverage()`. That runs from the later of the period start and the tracker's first-ever record (`min()` of its date column) to today.
+- **Games:** the overall average is total minutes ÷ days of games data. Each game's average is its minutes ÷ the days it was played.
+- **Books:** "finished" uses `Book::finished()` with `finished_on` in the period, the same rule as Reading history.
+- **Habits:** active habits are always listed, archived ones only if they were done in the period. Percentages are of the days with habit data.
+
 ### What to play (`games`)
 
 Rule-based (no AI) game picker over the owner's Steam library. `App\Models\SteamGame` is filled by two jobs: `SyncSteamLibrary` (official `IPlayerService/GetOwnedGames`, daily 04:00 UK; needs `STEAM_API_KEY` + `STEAM_ID` and the profile's "Game details" set to Public) and `FetchSteamGameDetails` (hourly, 50 games per run; store type/genres/categories from the unofficial `store.steampowered.com/api/appdetails`, community tags from SteamSpy, throttled ~1.5s per game). Re-syncs only update library fields, never the owner's `never_suggest`/`skipped_until` choices. Initial fill: `php artisan app:sync-steam-library` then `php artisan app:sync-steam-game-details` (~25 min for ~630 games; safe to re-run, it resumes). SteamSpy tag names are hyphenated (`Rogue-like`, `Rogue-lite`, `Base-Building`).

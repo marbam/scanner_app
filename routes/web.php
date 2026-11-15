@@ -18,6 +18,7 @@ use App\Livewire\Highlights\History as HighlightsHistory;
 use App\Livewire\Interests\Index as InterestsIndex;
 use App\Livewire\PlanningApplications\Index as PlanningApplicationsIndex;
 use App\Livewire\Reminders\Index as RemindersIndex;
+use App\Livewire\Review\Index as ReviewIndex;
 use App\Livewire\Squares\Board as SquaresBoard;
 use App\Livewire\Twitter\Memories\Index as TwitterMemoriesIndex;
 use App\Livewire\Watching\Backdate as WatchingBackdate;
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('books/history', BooksHistory::class)->name('books.history');
 
     Route::livewire('highlights', HighlightsHistory::class)->name('highlights.history');
+
+    Route::livewire('review', ReviewIndex::class)->name('review');
 
     Route::livewire('scans', InterestsIndex::class)->name('scans.index');
 
