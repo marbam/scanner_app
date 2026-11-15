@@ -201,6 +201,8 @@
     <flux:button variant="filled" icon:trailing="arrow-right" wire:click="goTo('{{ $next }}')">
         @if ($next === 'films')
             {{ $stepEntries->isEmpty() ? __('No TV, on to films') : __('On to films') }}
+        @elseif ($next === 'books')
+            {{ $stepEntries->isEmpty() ? __('No films, on to books') : __('On to books') }}
         @else
             {{ $stepEntries->isEmpty() ? __('No films, all done') : __('All done') }}
         @endif

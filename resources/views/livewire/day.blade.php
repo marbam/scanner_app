@@ -15,6 +15,7 @@
         'habits' => [__('Habits'), 'calendar-days', $habitsTotal > 0 ? $habitsDone.'/'.$habitsTotal : null],
         'tv' => [__('TV'), 'tv', $tvCount],
         'films' => [__('Films'), 'film', $filmCount],
+        'books' => [__('Books'), 'book-open', $this->bookEntries->count()],
         'done' => [__('Done'), 'check-circle', null],
     ]])
 
@@ -29,6 +30,8 @@
         <flux:button variant="filled" icon:trailing="arrow-right" wire:click="goTo('tv')">
             {{ __('On to TV') }}
         </flux:button>
+    @elseif ($step === 'books')
+        @include('livewire.books.partials.step')
     @elseif ($step !== 'done')
         @include('livewire.watching.partials.step')
     @else
@@ -61,6 +64,26 @@
 
             <div class="flex flex-col gap-4">
                 @include('livewire.watching.partials.summary', ['emptyText' => __('Nothing watched today.')])
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <flux:heading>{{ __('Books') }}</flux:heading>
+
+                @forelse ($this->bookEntries as $entry)
+                    <div wire:key="summary-book-{{ $entry->id }}" class="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900">
+                        @include('livewire.books.partials.cover', ['url' => $entry->book->coverUrl()])
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate font-medium text-zinc-800 dark:text-zinc-100">{{ $entry->book->title }}</div>
+                            @if ($entry->book->author)
+                                <div class="truncate text-sm text-zinc-500">{{ $entry->book->author }}</div>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500 dark:border-zinc-700">
+                        {{ __('No reading today.') }}
+                    </div>
+                @endforelse
             </div>
 
             <div class="flex flex-wrap gap-2">
