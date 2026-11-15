@@ -26,6 +26,7 @@
         'tv' => [__('TV'), 'tv', $tvCount],
         'films' => [__('Films'), 'film', $filmCount],
         'books' => [__('Books'), 'book-open', $this->bookEntries->count()],
+        'highlight' => [__('Highlight'), 'sparkles', trim($highlight) !== '' ? '✓' : null],
         'done' => [__('Done'), 'check-circle', null],
     ]])
 
@@ -42,10 +43,37 @@
         </flux:button>
     @elseif ($step === 'books')
         @include('livewire.books.partials.step')
+    @elseif ($step === 'highlight')
+        <flux:textarea
+            wire:model.blur="highlight"
+            :label="$isToday ? __('What was the highlight of today?') : __('What was the highlight of that day?')"
+            :placeholder="__('One thing worth remembering…')"
+            rows="4"
+            :maxlength="\App\Livewire\Day\Index::HIGHLIGHT_MAX_LENGTH"
+        />
+
+        <flux:button variant="filled" icon:trailing="arrow-right" wire:click="saveHighlight(); goTo('done')">
+            {{ trim($highlight) === '' ? __('Skip, all done') : __('Save, all done') }}
+        </flux:button>
     @elseif ($step !== 'done')
         @include('livewire.watching.partials.step')
     @else
         <div class="flex flex-col gap-6">
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-3">
+                    <flux:heading>{{ __('Highlight') }}</flux:heading>
+                    <flux:button size="sm" variant="ghost" icon="pencil-square" wire:click="goTo('highlight')">{{ trim($highlight) === '' ? __('Add') : __('Edit') }}</flux:button>
+                </div>
+
+                @if (trim($highlight) === '')
+                    <div class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500 dark:border-zinc-700">
+                        {{ __('No highlight written yet.') }}
+                    </div>
+                @else
+                    <div class="whitespace-pre-line rounded-lg border border-zinc-200 bg-white px-4 py-3 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">{{ $highlight }}</div>
+                @endif
+            </div>
+
             <div class="flex flex-col gap-2">
                 <div class="flex items-center justify-between gap-3">
                     <flux:heading>{{ __('Habits') }}</flux:heading>

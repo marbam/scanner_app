@@ -17,7 +17,7 @@ class Backdate extends Index
     {
         parent::mount();
 
-        $this->date = Carbon::parse(self::today())->subDay()->toDateString();
+        $this->setDate(Carbon::parse(self::today())->subDay()->toDateString());
     }
 
     public function isBackdating(): bool

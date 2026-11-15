@@ -129,8 +129,8 @@
     </div>
 @endif
 
-<flux:button variant="filled" icon:trailing="arrow-right" wire:click="goTo('done')">
-    {{ $this->bookEntries->isEmpty() ? __('No reading, all done') : __('All done') }}
+<flux:button variant="filled" icon:trailing="arrow-right" wire:click="goTo('{{ $this->nextStep() ?? 'done' }}')">
+    {{ $this->bookEntries->isEmpty() ? __('No reading, on to the highlight') : __('On to the highlight') }}
 </flux:button>
 
 <flux:text class="text-xs text-zinc-500">

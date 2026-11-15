@@ -30,7 +30,7 @@ test('books come after films and before done', function () {
         ->assertSee('No films, on to books')
         ->call('goTo', 'books')
         ->assertSee('Any reading?')
-        ->assertSee('No reading, all done');
+        ->assertSee('No reading, on to the highlight');
 });
 
 test('picking a book from Open Library logs it for today in one tap', function () {

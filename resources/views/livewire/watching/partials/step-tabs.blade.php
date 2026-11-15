@@ -1,5 +1,5 @@
 {{-- Step tabs: $tabs is [step => [label, icon, count|null]]. --}}
-<div @class(['grid gap-2', 'grid-cols-3' => count($tabs) === 3, 'grid-cols-4' => count($tabs) === 4, 'grid-cols-5' => count($tabs) >= 5])>
+<div @class(['grid gap-2', 'grid-cols-3' => count($tabs) === 3, 'grid-cols-4' => count($tabs) === 4, 'grid-cols-5' => count($tabs) === 5, 'grid-cols-6' => count($tabs) >= 6])>
     @foreach ($tabs as $key => [$label, $icon, $count])
         <button
             type="button"
