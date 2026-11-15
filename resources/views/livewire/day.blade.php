@@ -78,6 +78,9 @@
                                 <div class="truncate text-sm text-zinc-500">{{ $entry->book->author }}</div>
                             @endif
                         </div>
+                        @if ($entry->book->finished_on?->toDateString() === $date)
+                            <flux:badge size="sm" color="amber">{{ __('Finished') }}</flux:badge>
+                        @endif
                     </div>
                 @empty
                     <div class="rounded-lg border border-dashed border-zinc-300 p-4 text-center text-zinc-500 dark:border-zinc-700">
@@ -89,6 +92,7 @@
             <div class="flex flex-wrap gap-2">
                 <flux:button :href="route('habits.tracker')" wire:navigate icon="squares-2x2">{{ __('Habit tracker') }}</flux:button>
                 <flux:button :href="route('watching.history')" wire:navigate icon="film">{{ __('Watch history') }}</flux:button>
+                <flux:button :href="route('books.history')" wire:navigate icon="book-open">{{ __('Reading history') }}</flux:button>
             </div>
         </div>
     @endif

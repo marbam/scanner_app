@@ -23,7 +23,7 @@ use Throwable;
  *
  * @property-read Collection<int, BookEntry> $bookEntries
  * @property-read Collection<int, Book> $bookHistoryResults
- * @property-read list<array{book: Book, last_read: ?CarbonInterface, logged: bool}> $recentBooks
+ * @property-read list<array{book: Book, last_read: ?CarbonInterface, logged: bool, finished: bool}> $recentBooks
  * @property-read array{results: list<array{key: string, title: string, author: ?string, year: ?int, cover_id: ?int}>, error: bool} $openLibraryResults
  */
 trait LogsBooks
@@ -48,7 +48,9 @@ trait LogsBooks
      * the last read *before* this date, so ticking doesn't reorder it; books
      * only read on this date come first.
      *
-     * @return list<array{book: Book, last_read: ?CarbonInterface, logged: bool}>
+     * Books finished before this date (and not read since) drop out.
+     *
+     * @return list<array{book: Book, last_read: ?CarbonInterface, logged: bool, finished: bool}>
      */
     #[Computed]
     public function recentBooks(): array
@@ -61,13 +63,24 @@ trait LogsBooks
         $books = [];
 
         foreach ($entries->groupBy('book_id') as $bookEntries) {
+            $book = $bookEntries->first()->book;
+            $finishedOn = $book->finished_on?->toDateString();
+            $lastRead = $bookEntries->max(fn (BookEntry $e) => $e->read_on->toDateString());
+
+            // Finished before this date and not picked up again since: done with.
+            // Finished *on* this date stays, so it can be undone.
+            if ($finishedOn !== null && $finishedOn < $this->date && $lastRead <= $finishedOn) {
+                continue;
+            }
+
             $onThisDate = $bookEntries->filter(fn (BookEntry $e) => $e->read_on->toDateString() === $this->date);
             $before = $bookEntries->diff($onThisDate)->sortByDesc(fn (BookEntry $e) => $e->read_on->toDateString())->first();
 
             $books[] = [
-                'book' => $bookEntries->first()->book,
+                'book' => $book,
                 'last_read' => $before?->read_on,
                 'logged' => $onThisDate->isNotEmpty(),
+                'finished' => $finishedOn === $this->date,
             ];
         }
 
@@ -151,6 +164,31 @@ trait LogsBooks
             $this->logBook($book);
         }
 
+        $this->clearBookComputed();
+    }
+
+    /**
+     * Marks a book finished on this date (which also logs it as read today),
+     * or undoes that if it was already finished on this date.
+     */
+    public function toggleFinished(int $bookId): void
+    {
+        $book = Book::find($bookId);
+
+        if (! $book) {
+            return;
+        }
+
+        $this->date = $this->normalisedDate($this->date);
+
+        if ($book->finished_on?->toDateString() === $this->date) {
+            $book->finished_on = null;
+        } else {
+            $book->finished_on = Carbon::parse($this->date);
+            $this->logBook($book);
+        }
+
+        $book->save();
         $this->clearBookComputed();
     }
 

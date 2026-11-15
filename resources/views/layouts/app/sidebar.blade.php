@@ -67,6 +67,12 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group :heading="__('Reading')" class="grid">
+                    <flux:sidebar.item icon="book-open" :href="route('books.history')" :current="request()->routeIs('books.history')" wire:navigate>
+                        {{ __('History') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group :heading="__('Reminders')" class="grid">
                     <flux:sidebar.item icon="bell" :href="route('reminders.index')" :current="request()->routeIs('reminders.index')" wire:navigate>
                         {{ __('Reminders') }}
