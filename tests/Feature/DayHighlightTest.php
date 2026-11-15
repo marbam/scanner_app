@@ -72,3 +72,17 @@ test('backdating loads and saves the highlight for the chosen date', function ()
     expect(DayHighlight::whereDate('date', '2026-11-04')->sole()->body)->toBe('Three days ago')
         ->and(DayHighlight::count())->toBe(3);
 });
+
+test('backdate opens on the date in the URL, and refuses future or invalid ones', function () {
+    DayHighlight::create(['date' => '2026-10-01', 'body' => 'An October day']);
+
+    Livewire::withQueryParams(['date' => '2026-10-01', 'step' => 'highlight'])
+        ->test(Backdate::class)
+        ->assertSet('date', '2026-10-01')
+        ->assertSet('step', 'highlight')
+        ->assertSet('highlight', 'An October day')
+        ->assertSee('What was the highlight of that day?');
+
+    Livewire::withQueryParams(['date' => '2027-01-01'])->test(Backdate::class)->assertSet('date', '2026-11-07');
+    Livewire::withQueryParams(['date' => 'nonsense'])->test(Backdate::class)->assertSet('date', '2026-11-07');
+});

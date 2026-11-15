@@ -26,10 +26,18 @@
 
     <div class="flex flex-col gap-3">
         @forelse ($this->highlights as $highlight)
-            <div wire:key="highlight-{{ $highlight->id }}" class="flex flex-col gap-1 rounded-lg border-l-4 border-amber-400 bg-amber-50/50 p-3 shadow-sm dark:border-amber-500 dark:bg-amber-950/20">
-                <flux:heading size="sm">{{ $highlight->date->format('l j F Y') }}</flux:heading>
+            <a
+                href="{{ route('day.backdate', ['date' => $highlight->date->toDateString(), 'step' => 'highlight']) }}"
+                wire:navigate
+                wire:key="highlight-{{ $highlight->id }}"
+                class="group flex flex-col gap-1 rounded-lg border-l-4 border-amber-400 bg-amber-50/50 p-3 shadow-sm transition hover:bg-amber-100/60 dark:border-amber-500 dark:bg-amber-950/20 dark:hover:bg-amber-950/40"
+            >
+                <div class="flex items-center justify-between gap-2">
+                    <flux:heading size="sm">{{ $highlight->date->format('l j F Y') }}</flux:heading>
+                    <flux:icon name="pencil-square" variant="mini" class="shrink-0 text-amber-600 opacity-60 group-hover:opacity-100 dark:text-amber-400" />
+                </div>
                 <flux:text class="whitespace-pre-line break-words">{{ $highlight->body }}</flux:text>
-            </div>
+            </a>
         @empty
             <div class="rounded-lg border border-dashed border-zinc-300 p-6 text-center text-zinc-500 dark:border-zinc-700">
                 {{ trim($search) !== '' || $year !== '' ? __('Nothing matches.') : __('No highlights written yet.') }}

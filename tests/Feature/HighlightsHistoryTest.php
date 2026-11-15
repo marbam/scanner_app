@@ -49,3 +49,10 @@ test('an invalid year falls back to all time, and an empty page says so', functi
         ->assertSet('year', '')
         ->assertSee('No highlights written yet.');
 });
+
+test('each highlight links to its day on the backdate page', function () {
+    DayHighlight::create(['date' => '2026-10-01', 'body' => 'An October day']);
+
+    Livewire::test(History::class)
+        ->assertSeeHtml(e(route('day.backdate', ['date' => '2026-10-01', 'step' => 'highlight'])));
+});
