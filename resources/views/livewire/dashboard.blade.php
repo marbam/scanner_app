@@ -9,7 +9,12 @@
     </flux:button>
 
     <div class="flex flex-col gap-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
-        <flux:heading size="lg">{{ __('Your highlights') }}</flux:heading>
+        <div class="flex items-center justify-between gap-4">
+            <flux:heading size="lg">{{ __('Your highlights') }}</flux:heading>
+            <flux:button href="{{ route('highlights.history') }}" size="sm" variant="ghost" icon-trailing="chevron-right" wire:navigate>
+                {{ __('View all') }}
+            </flux:button>
+        </div>
 
         <div class="flex flex-col gap-3">
             @forelse ($this->highlightMemories as ['when' => $when, 'years_ago' => $yearsAgo, 'highlight' => $highlight])

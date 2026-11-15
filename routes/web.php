@@ -14,6 +14,7 @@ use App\Livewire\Habits\Activities as HabitsActivities;
 use App\Livewire\Habits\Log as HabitsLog;
 use App\Livewire\Habits\Summary as HabitsSummary;
 use App\Livewire\Habits\Tracker as HabitsTracker;
+use App\Livewire\Highlights\History as HighlightsHistory;
 use App\Livewire\Interests\Index as InterestsIndex;
 use App\Livewire\PlanningApplications\Index as PlanningApplicationsIndex;
 use App\Livewire\Reminders\Index as RemindersIndex;
@@ -34,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('day/backdate', DayBackdate::class)->name('day.backdate');
 
     Route::livewire('books/history', BooksHistory::class)->name('books.history');
+
+    Route::livewire('highlights', HighlightsHistory::class)->name('highlights.history');
 
     Route::livewire('scans', InterestsIndex::class)->name('scans.index');
 
