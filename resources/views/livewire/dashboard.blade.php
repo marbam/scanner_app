@@ -8,6 +8,32 @@
         {{ __('Log your day') }}
     </flux:button>
 
+    <div class="flex flex-col gap-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+        <flux:heading size="lg">{{ __('Your highlights') }}</flux:heading>
+
+        <div class="flex flex-col gap-3">
+            @forelse ($this->highlightMemories as ['when' => $when, 'years_ago' => $yearsAgo, 'highlight' => $highlight])
+                @php
+                    $label = match ($when) {
+                        'week' => __('A week ago'),
+                        'month' => __('A month ago'),
+                        default => trans_choice(':count year ago|:count years ago', $yearsAgo, ['count' => $yearsAgo]),
+                    };
+                @endphp
+
+                <div wire:key="dashboard-highlight-{{ $highlight->id }}" class="flex flex-col gap-1 rounded-lg border-l-4 border-amber-400 bg-amber-50/50 p-3 shadow-sm dark:border-amber-500 dark:bg-amber-950/20">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <flux:heading size="sm">{{ $highlight->date->format('l j F Y') }}</flux:heading>
+                        <flux:badge size="sm" color="amber">{{ $label }}</flux:badge>
+                    </div>
+                    <flux:text class="whitespace-pre-line break-words">{{ $highlight->body }}</flux:text>
+                </div>
+            @empty
+                <flux:text class="text-center text-zinc-500">{{ __('No highlights from a week ago, a month ago or this day in past years yet.') }}</flux:text>
+            @endforelse
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div class="flex flex-col gap-4 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
             <div class="flex items-center justify-between gap-4">

@@ -87,7 +87,8 @@ The app has grown into a general personal dashboard beyond the Interest/Interest
 
 ### Dashboard (`/dashboard`)
 
-`App\Livewire\Dashboard\Index` (view: `resources/views/livewire/dashboard.blade.php`) is the landing page and is deliberately mobile-first — the owner checks it on their phone first thing in the morning. It surfaces four things at a glance, each with a "View all" link to the full page:
+`App\Livewire\Dashboard\Index` (view: `resources/views/livewire/dashboard.blade.php`) is the landing page and is deliberately mobile-first — the owner checks it on their phone first thing in the morning. It surfaces five things at a glance, each (except highlights) with a "View all" link to the full page:
+- **Your highlights**: `DayHighlight`s (written on Your Day) from exactly a week ago, a month ago, and this day in earlier years, using UK dates. Today's own highlight is left out.
 - **Facebook memories** and **Twitter memories** for today's date across all past years (same query shape as the two Memories pages below, just filtered to today and rendered compactly).
 - **Scans gone live** — `Alert`s (see "Domain model" above) with `detected_at` in the last 24 hours, so a released Interest shows up here as well as in the Pushover notification, without a separate trip to `/scans`.
 - **New Bristol adverts** found in the last 24 hours (`PlanningApplication::where('created_at', '>=', now()->subDay())`).
